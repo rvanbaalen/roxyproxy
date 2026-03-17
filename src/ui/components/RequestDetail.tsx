@@ -62,11 +62,15 @@ function HeadersView({ headers }: { headers: Record<string, string> }) {
   );
 }
 
+function decodeBody(body: string): string {
+  try { return atob(body); } catch { return body; }
+}
+
 function BodyView({ body, contentType }: { body: string | null; contentType: string | null }) {
   if (!body) return null;
-  let formatted = body;
-  if (contentType?.includes('json') || body.startsWith('{') || body.startsWith('[')) {
-    try { formatted = JSON.stringify(JSON.parse(body), null, 2); } catch {}
+  let formatted = decodeBody(body);
+  if (contentType?.includes('json') || formatted.startsWith('{') || formatted.startsWith('[')) {
+    try { formatted = JSON.stringify(JSON.parse(formatted), null, 2); } catch {}
   }
   return (
     <div>

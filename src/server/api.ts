@@ -2,7 +2,15 @@ import { Router } from 'express';
 import type { Request, Response } from 'express';
 import type { Database } from '../storage/db.js';
 import type { EventManager } from './events.js';
-import type { RequestFilter } from '../shared/types.js';
+import type { RequestFilter, RequestRecord } from '../shared/types.js';
+
+function serializeRecord(r: RequestRecord): Record<string, unknown> {
+  return {
+    ...r,
+    request_body: r.request_body ? Buffer.from(r.request_body).toString('base64') : null,
+    response_body: r.response_body ? Buffer.from(r.response_body).toString('base64') : null,
+  };
+}
 
 export interface ProxyControl {
   getProxyRunning: () => boolean;
@@ -31,7 +39,10 @@ export function createApiRouter(
     if (req.query.offset) filter.offset = parseInt(req.query.offset as string, 10);
 
     const result = db.query(filter);
-    res.json(result);
+    res.json({
+      ...result,
+      data: result.data.map(serializeRecord),
+    });
   });
 
   router.get('/requests/:id', (req: Request, res: Response) => {
@@ -40,7 +51,7 @@ export function createApiRouter(
       res.status(404).json({ error: 'Not found' });
       return;
     }
-    res.json(record);
+    res.json(serializeRecord(record));
   });
 
   router.delete('/requests', (_req: Request, res: Response) => {
@@ -91,7 +102,7 @@ export function createApiRouter(
     const unsubscribe = events.subscribe((records) => {
       for (const record of records) {
         res.write(`id: ${record.id}\n`);
-        res.write(`data: ${JSON.stringify(record)}\n\n`);
+        res.write(`data: ${JSON.stringify(serializeRecord(record))}\n\n`);
       }
     });
 
