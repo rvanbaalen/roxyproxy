@@ -64,24 +64,49 @@ export async function stopProxy(): Promise<void> {
   await fetch(`${API_BASE}/proxy/stop`, { method: 'POST' });
 }
 
-export function useSSE(maxItems = 500): RequestRecord[] {
+export interface SSEState {
+  requests: RequestRecord[];
+  statusEvent: { running: boolean; proxyPort: number } | null;
+  clearLocal: () => void;
+}
+
+export function useSSE(maxItems = 500): SSEState {
   const [requests, setRequests] = useState<RequestRecord[]>([]);
+  const [statusEvent, setStatusEvent] = useState<SSEState['statusEvent']>(null);
+  const clearLocal = () => setRequests([]);
 
   useEffect(() => {
+    let cancelled = false;
+
+    // Load existing traffic from the database first
+    fetchRequests({ limit: String(maxItems) }).then((result) => {
+      if (!cancelled) {
+        setRequests(result.data);
+      }
+    }).catch(() => {
+      // Ignore fetch errors — SSE will still work
+    });
+
     const es = new EventSource(`${API_BASE}/events`);
 
-    es.onmessage = (event) => {
+    es.addEventListener('request', (event) => {
       const record: RequestRecord = JSON.parse(event.data);
       setRequests((prev) => {
+        if (prev.some((r) => r.id === record.id)) return prev;
         const next = [record, ...prev];
         return next.slice(0, maxItems);
       });
-    };
+    });
+
+    es.addEventListener('status', (event) => {
+      setStatusEvent(JSON.parse(event.data));
+    });
 
     return () => {
+      cancelled = true;
       es.close();
     };
   }, [maxItems]);
 
-  return requests;
+  return { requests, statusEvent, clearLocal };
 }

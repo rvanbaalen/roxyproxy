@@ -11,7 +11,7 @@ const MAX_PANEL_WIDTH = 900;
 const DEFAULT_PANEL_WIDTH = 500;
 
 export function App() {
-  const liveRequests = useSSE(500);
+  const { requests: liveRequests, statusEvent, clearLocal } = useSSE(500);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [panelWidth, setPanelWidth] = useState(DEFAULT_PANEL_WIDTH);
 
@@ -37,7 +37,7 @@ export function App() {
     });
   }, [liveRequests, filterHost, filterStatus, filterMethod, filterSearch]);
 
-  const handleClear = useCallback(() => { setSelectedId(null); }, []);
+  const handleClear = useCallback(() => { setSelectedId(null); clearLocal(); }, [clearLocal]);
 
   const handleSelect = useCallback((id: string) => {
     setSelectedId(prev => prev === id ? null : id);
@@ -56,7 +56,7 @@ export function App() {
 
   return (
     <div className="flex flex-col h-screen">
-      <Controls onClear={handleClear} />
+      <Controls onClear={handleClear} statusEvent={statusEvent} />
       <FilterBar
         host={filterHost} status={filterStatus} method={filterMethod} search={filterSearch}
         onHostChange={setFilterHost} onStatusChange={setFilterStatus}
