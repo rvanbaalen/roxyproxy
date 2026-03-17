@@ -1,21 +1,34 @@
 {
-  "name": "roxyproxy",
+  "name": "@rvanbaalen/roxyproxy",
   "version": "0.1.0",
   "description": "HTTP/HTTPS intercepting proxy with CLI and web UI",
   "type": "module",
   "bin": {
     "roxyproxy": "./dist/cli/index.js"
   },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build:server": "tsc -p tsconfig.server.json",
     "build:ui": "vite build",
     "build": "npm run build:server && npm run build:ui",
     "dev:ui": "vite",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "prepublishOnly": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rvanbaalen/roxyproxy.git"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
+    "access": "public"
   },
   "license": "MIT",
   "dependencies": {
+    "@phosphor-icons/react": "^2.1.10",
     "better-sqlite3": "^12.8.0",
     "commander": "^14.0.3",
     "express": "^5.2.1",
