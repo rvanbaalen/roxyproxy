@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.1.2](https://github.com/rvanbaalen/roxyproxy/compare/roxyproxy-v0.1.1...roxyproxy-v0.1.2) (2026-03-17)
+
+
+### Features
+
+* add Claude Code plugin with roxyproxy skill ([3c7d227](https://github.com/rvanbaalen/roxyproxy/commit/3c7d22716ddc633eaa371320c193b68f2266a2d9))
+* add marketplace.json for Claude Code plugin installation ([2afc0b5](https://github.com/rvanbaalen/roxyproxy/commit/2afc0b5b352e4806635863a72916b3dd40f251b3))
+* **cli:** add untrust-ca command to remove CA certificate from system trust store ([b8df7ea](https://github.com/rvanbaalen/roxyproxy/commit/b8df7ea4c1629b4aa96b7ccd4bd6562f42ddb838))
+* **cli:** show filtering examples in requests view ([2500b86](https://github.com/rvanbaalen/roxyproxy/commit/2500b867824d8bbf93fab7b149603cf8d1d19ddc))
+* **server:** detect and kill stale roxyproxy instances on port conflict ([058abc9](https://github.com/rvanbaalen/roxyproxy/commit/058abc98c443a0eff145e246206798c208b2f6e8))
+
+
+### Bug Fixes
+
+* **server:** add error handling for port binding failures ([895b242](https://github.com/rvanbaalen/roxyproxy/commit/895b242f3138f262914a621489f25d4cb4a7d57e))
+* **server:** auto-retry next port on EADDRINUSE instead of crashing ([256f19b](https://github.com/rvanbaalen/roxyproxy/commit/256f19bd34949558d7d7c458e26026498a0729ad))
+
+
+### Reverts
+
+* move plugin back to repo root (marketplace requires whole repo) ([88989ba](https://github.com/rvanbaalen/roxyproxy/commit/88989ba6952de2bb31cb3dd848df4e4ec1a27b47))
+
 ## [0.1.1](https://github.com/rvanbaalen/roxyproxy/compare/roxyproxy-v0.1.0...roxyproxy-v0.1.1) (2026-03-17)
 
 
