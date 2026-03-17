@@ -245,7 +245,14 @@ function RequestsView({ onBack, onSelect }: { onBack: () => void; onSelect: (id:
           <Text dimColor>{r.duration ? `${r.duration}ms` : '-'}</Text>
         </Box>
       ))}
-      <Box marginTop={1}><Text dimColor>↑↓ navigate  Enter select  Esc back</Text></Box>
+      <Box marginTop={1}><Text dimColor>{'↑↓ navigate  Enter select  Esc back'}</Text></Box>
+      <Box marginTop={1} flexDirection="column">
+        <Text dimColor>  Filter with the CLI:</Text>
+        <Text color="cyan">{'    roxyproxy requests --host example.com'}</Text>
+        <Text color="cyan">{'    roxyproxy requests --status 500 --method POST'}</Text>
+        <Text color="cyan">{'    roxyproxy requests --search "/api" --format table'}</Text>
+        <Text color="cyan">{'    roxyproxy request <id>  '}<Text dimColor>{'# full detail for one request'}</Text></Text>
+      </Box>
     </Box>
   );
 }
