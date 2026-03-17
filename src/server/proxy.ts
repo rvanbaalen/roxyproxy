@@ -8,6 +8,7 @@ import type { Database } from '../storage/db.js';
 import type { CertificateAuthority } from './ssl.js';
 import type { EventManager } from './events.js';
 import type { Config, RequestRecord } from '../shared/types.js';
+import { listenWithRetry } from './port-utils.js';
 
 export class ProxyServer {
   private server: http.Server | null = null;
@@ -32,7 +33,8 @@ export class ProxyServer {
 
     this.writeTimer = setInterval(() => this.flushWrites(), 100);
 
-    return this.listen(this.server, this.config.proxyPort);
+    const result = await listenWithRetry(this.server, this.config.proxyPort);
+    return result.port;
   }
 
   async stop(): Promise<void> {
@@ -59,32 +61,6 @@ export class ProxyServer {
     if (!this.server) return 0;
     const addr = this.server.address() as net.AddressInfo | null;
     return addr?.port ?? 0;
-  }
-
-  private listen(server: http.Server, port: number, maxRetries = 10): Promise<number> {
-    return new Promise((resolve, reject) => {
-      let attempt = 0;
-      const tryPort = (p: number) => {
-        const onError = (err: NodeJS.ErrnoException) => {
-          if (err.code === 'EADDRINUSE' && attempt < maxRetries) {
-            attempt++;
-            server.removeListener('error', onError);
-            tryPort(p + 1);
-          } else if (err.code === 'EADDRINUSE') {
-            reject(new Error(`Ports ${port}-${p} are all in use`));
-          } else {
-            reject(err);
-          }
-        };
-        server.once('error', onError);
-        server.listen(p, () => {
-          server.removeListener('error', onError);
-          const addr = server.address() as net.AddressInfo;
-          resolve(addr.port);
-        });
-      };
-      tryPort(port);
-    });
   }
 
   private flushWrites(): void {

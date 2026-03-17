@@ -10,6 +10,7 @@ import { EventManager } from './events.js';
 import { Cleanup } from '../storage/cleanup.js';
 import { createApiRouter } from './api.js';
 import type { ProxyControl } from './api.js';
+import { listenWithRetry } from './port-utils.js';
 
 export class RoxyProxyServer {
   private db: Database;
@@ -71,35 +72,10 @@ export class RoxyProxyServer {
       socket.on('close', () => this.connections.delete(socket));
     });
 
-    const uiPort = await this.listenWithRetry(this.apiServer, this.config.uiPort);
+    const uiResult = await listenWithRetry(this.apiServer, this.config.uiPort);
+    const uiPort = uiResult.port;
 
     return { proxyPort: this.actualProxyPort, uiPort };
-  }
-
-  private listenWithRetry(server: http.Server, port: number, maxRetries = 10): Promise<number> {
-    return new Promise((resolve, reject) => {
-      let attempt = 0;
-      const tryPort = (p: number) => {
-        const onError = (err: NodeJS.ErrnoException) => {
-          if (err.code === 'EADDRINUSE' && attempt < maxRetries) {
-            attempt++;
-            server.removeListener('error', onError);
-            tryPort(p + 1);
-          } else if (err.code === 'EADDRINUSE') {
-            reject(new Error(`Ports ${port}-${p} are all in use`));
-          } else {
-            reject(err);
-          }
-        };
-        server.once('error', onError);
-        server.listen(p, () => {
-          server.removeListener('error', onError);
-          const addr = server.address() as net.AddressInfo;
-          resolve(addr.port);
-        });
-      };
-      tryPort(port);
-    });
   }
 
   get isProxyRunning(): boolean {
