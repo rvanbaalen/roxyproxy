@@ -79,6 +79,10 @@ export class RoxyProxyServer {
     return { proxyPort: this.actualProxyPort, uiPort };
   }
 
+  get isProxyRunning(): boolean {
+    return this.proxyRunning;
+  }
+
   async stop(): Promise<void> {
     this.cleanup.stop();
     this.events.stop();

@@ -4,7 +4,6 @@ import net from 'node:net';
 import tls from 'node:tls';
 import { randomUUID } from 'node:crypto';
 import { URL } from 'node:url';
-import zlib from 'node:zlib';
 import type { Database } from '../storage/db.js';
 import type { CertificateAuthority } from './ssl.js';
 import type { EventManager } from './events.js';
@@ -12,6 +11,7 @@ import type { Config, RequestRecord } from '../shared/types.js';
 
 export class ProxyServer {
   private server: http.Server | null = null;
+  private sockets: Set<net.Socket> = new Set();
   private writeQueue: RequestRecord[] = [];
   private writeTimer: ReturnType<typeof setInterval> | null = null;
 
@@ -25,6 +25,10 @@ export class ProxyServer {
   async start(): Promise<number> {
     this.server = http.createServer((req, res) => this.handleRequest(req, res));
     this.server.on('connect', (req, clientSocket: net.Socket, head) => this.handleConnect(req, clientSocket, head));
+    this.server.on('connection', (socket) => {
+      this.sockets.add(socket);
+      socket.on('close', () => this.sockets.delete(socket));
+    });
 
     this.writeTimer = setInterval(() => this.flushWrites(), 100);
 
@@ -42,9 +46,14 @@ export class ProxyServer {
       this.writeTimer = null;
     }
     this.flushWrites();
+    for (const socket of this.sockets) {
+      socket.destroy();
+    }
+    this.sockets.clear();
     return new Promise((resolve) => {
       if (this.server) {
         this.server.close(() => resolve());
+        this.server = null;
       } else {
         resolve();
       }
@@ -62,6 +71,14 @@ export class ProxyServer {
     const batch = this.writeQueue;
     this.writeQueue = [];
     this.db.insertBatch(batch);
+  }
+
+  /**
+   * Strip accept-encoding from outgoing headers so the upstream server
+   * sends an uncompressed response. This avoids all decompression edge cases.
+   */
+  private stripEncoding(headers: Record<string, string | string[] | undefined>): void {
+    delete headers['accept-encoding'];
   }
 
   private handleRequest(clientReq: http.IncomingMessage, clientRes: http.ServerResponse): void {
@@ -87,14 +104,17 @@ export class ProxyServer {
     clientReq.on('end', () => {
       const requestBody = Buffer.concat(requestBodyChunks);
 
+      const headers = { ...clientReq.headers };
+      delete (headers as Record<string, string>)['proxy-connection'];
+      this.stripEncoding(headers);
+
       const options: http.RequestOptions = {
         hostname: parsed.hostname,
         port: parsed.port || 80,
         path: parsed.pathname + parsed.search,
         method: clientReq.method,
-        headers: { ...clientReq.headers },
+        headers,
       };
-      delete (options.headers as Record<string, string>)['proxy-connection'];
 
       const proxyReq = http.request(options, (proxyRes) => {
         const responseBodyChunks: Buffer[] = [];
@@ -104,14 +124,12 @@ export class ProxyServer {
         });
 
         proxyRes.on('end', () => {
-          const rawResponseBody = Buffer.concat(responseBodyChunks);
-          const responseBody = this.decodeBody(rawResponseBody, proxyRes.headers['content-encoding']);
+          const responseBody = Buffer.concat(responseBodyChunks);
 
-          const headers = { ...proxyRes.headers };
-          delete headers['content-encoding'];
-          delete headers['transfer-encoding'];
-          headers['content-length'] = responseBody.length.toString();
-          clientRes.writeHead(proxyRes.statusCode || 500, headers);
+          const resHeaders = { ...proxyRes.headers };
+          delete resHeaders['transfer-encoding'];
+          resHeaders['content-length'] = responseBody.length.toString();
+          clientRes.writeHead(proxyRes.statusCode || 500, resHeaders);
           clientRes.end(responseBody);
 
           const truncated = requestBody.length > this.config.maxBodySize || responseBody.length > this.config.maxBodySize;
@@ -167,6 +185,11 @@ export class ProxyServer {
         isServer: true,
         cert,
         key,
+        ALPNProtocols: ['http/1.1'],
+      });
+
+      tlsSocket.on('error', () => {
+        clientSocket.destroy();
       });
 
       const virtualServer = http.createServer((clientReq, clientRes) => {
@@ -194,12 +217,15 @@ export class ProxyServer {
     clientReq.on('end', () => {
       const requestBody = Buffer.concat(requestBodyChunks);
 
+      const headers = { ...clientReq.headers, host: hostname };
+      this.stripEncoding(headers);
+
       const options: https.RequestOptions = {
         hostname,
         port,
         path: urlPath,
         method: clientReq.method,
-        headers: { ...clientReq.headers, host: hostname },
+        headers,
         rejectUnauthorized: false,
       };
 
@@ -211,14 +237,12 @@ export class ProxyServer {
         });
 
         proxyRes.on('end', () => {
-          const rawResponseBody = Buffer.concat(responseBodyChunks);
-          const responseBody = this.decodeBody(rawResponseBody, proxyRes.headers['content-encoding']);
+          const responseBody = Buffer.concat(responseBodyChunks);
 
-          const headers = { ...proxyRes.headers };
-          delete headers['content-encoding'];
-          delete headers['transfer-encoding'];
-          headers['content-length'] = responseBody.length.toString();
-          clientRes.writeHead(proxyRes.statusCode || 500, headers);
+          const resHeaders = { ...proxyRes.headers };
+          delete resHeaders['transfer-encoding'];
+          resHeaders['content-length'] = responseBody.length.toString();
+          clientRes.writeHead(proxyRes.statusCode || 500, resHeaders);
           clientRes.end(responseBody);
 
           const truncated = requestBody.length > this.config.maxBodySize || responseBody.length > this.config.maxBodySize;
@@ -259,19 +283,5 @@ export class ProxyServer {
       }
       proxyReq.end();
     });
-  }
-
-  private decodeBody(body: Buffer, encoding?: string): Buffer {
-    if (!encoding || !body.length) return body;
-    try {
-      switch (encoding) {
-        case 'gzip': return zlib.gunzipSync(body);
-        case 'deflate': return zlib.inflateSync(body);
-        case 'br': return zlib.brotliDecompressSync(body);
-        default: return body;
-      }
-    } catch {
-      return body;
-    }
   }
 }

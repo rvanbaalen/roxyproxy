@@ -335,7 +335,16 @@ function App() {
     checkSystemProxyStatus().then(setSystemProxyEnabled);
   }, []);
 
-  const proxyRunning = !!server;
+  const [proxyRunning, setProxyRunning] = useState(false);
+
+  // Poll actual proxy state to detect changes from web UI or API
+  useEffect(() => {
+    const check = () => setProxyRunning(server?.isProxyRunning ?? false);
+    check();
+    const timer = setInterval(check, 1000);
+    return () => clearInterval(timer);
+  }, [server]);
+
   const menu = buildMenu(proxyRunning, caStatus, systemProxyEnabled);
   const selectableItems = menu.filter((e): e is MenuItem => e.type === 'item');
 
@@ -354,12 +363,22 @@ function App() {
     setMessage('');
     switch (value) {
       case 'toggle-proxy': {
-        if (server) {
+        if (proxyRunning && server) {
           setScreen('working');
           setWorkingLabel('Stopping proxy...');
-          await server.stop();
-          setServer(null);
+          await apiPost(8081, '/api/proxy/stop');
           setMessage('Proxy stopped.');
+          setScreen('menu');
+        } else if (!proxyRunning && server) {
+          // Proxy was stopped externally (e.g. via web UI) — restart it
+          setScreen('working');
+          setWorkingLabel('Starting proxy...');
+          try {
+            await apiPost(8081, '/api/proxy/start');
+            setMessage('Proxy restarted.');
+          } catch (e) {
+            setMessage(`Failed: ${(e as Error).message}`);
+          }
           setScreen('menu');
         } else {
           setScreen('working');
@@ -411,10 +430,29 @@ function App() {
         break;
       }
       case 'open-ui': {
+        if (!server) {
+          setScreen('working');
+          setWorkingLabel('Starting proxy...');
+          try {
+            const config = loadConfig();
+            const pidPath = path.join(os.homedir(), '.roxyproxy', 'pid');
+            fs.mkdirSync(path.dirname(pidPath), { recursive: true });
+            fs.writeFileSync(pidPath, process.pid.toString());
+            const s = new RoxyProxyServer(config);
+            const ports = await s.start();
+            setServer(s);
+            setMessage(`Proxy on :${ports.proxyPort}, UI on :${ports.uiPort}`);
+          } catch (e) {
+            setMessage(`Failed to start proxy: ${(e as Error).message}`);
+            setScreen('menu');
+            break;
+          }
+        }
         const uiUrl = 'http://127.0.0.1:8081';
         const cmd = os.platform() === 'darwin' ? 'open' : os.platform() === 'win32' ? 'start' : 'xdg-open';
         execFile(cmd, [uiUrl], () => {});
         setMessage(`Opening ${uiUrl}`);
+        setScreen('menu');
         break;
       }
       case 'trust-ca': {

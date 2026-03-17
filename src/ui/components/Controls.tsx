@@ -4,9 +4,10 @@ import type { ProxyStatus } from '../api.ts';
 
 interface ControlsProps {
   onClear: () => void;
+  statusEvent?: { running: boolean; proxyPort: number } | null;
 }
 
-export function Controls({ onClear }: ControlsProps) {
+export function Controls({ onClear, statusEvent }: ControlsProps) {
   const [status, setStatus] = useState<ProxyStatus | null>(null);
 
   const loadStatus = async () => {
@@ -18,6 +19,13 @@ export function Controls({ onClear }: ControlsProps) {
     const timer = setInterval(loadStatus, 5000);
     return () => clearInterval(timer);
   }, []);
+
+  // Instantly update running state when SSE status event arrives
+  useEffect(() => {
+    if (statusEvent && status) {
+      setStatus((prev) => prev ? { ...prev, running: statusEvent.running, proxyPort: statusEvent.proxyPort } : prev);
+    }
+  }, [statusEvent]);
 
   const toggleProxy = async () => {
     if (status?.running) { await stopProxy(); } else { await startProxy(); }

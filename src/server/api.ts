@@ -26,6 +26,13 @@ export function createApiRouter(
 ): Router {
   const router = Router();
 
+  const emitStatusEvent = () => {
+    events.emitStatus({
+      running: proxy.getProxyRunning(),
+      proxyPort: proxy.getProxyPort(),
+    });
+  };
+
   router.get('/requests', (req: Request, res: Response) => {
     const filter: RequestFilter = {};
     if (req.query.host) filter.host = req.query.host as string;
@@ -71,6 +78,7 @@ export function createApiRouter(
   router.post('/proxy/start', async (_req: Request, res: Response) => {
     try {
       await proxy.startProxy();
+      emitStatusEvent();
       res.json({ ok: true });
     } catch (err) {
       res.status(500).json({ error: (err as Error).message });
@@ -80,6 +88,7 @@ export function createApiRouter(
   router.post('/proxy/stop', async (_req: Request, res: Response) => {
     try {
       await proxy.stopProxy();
+      emitStatusEvent();
       res.json({ ok: true });
     } catch (err) {
       res.status(500).json({ error: (err as Error).message });
@@ -99,15 +108,19 @@ export function createApiRouter(
       Connection: 'keep-alive',
     });
 
-    const unsubscribe = events.subscribe((records) => {
+    const unsubRequest = events.subscribe((records) => {
       for (const record of records) {
-        res.write(`id: ${record.id}\n`);
-        res.write(`data: ${JSON.stringify(serializeRecord(record))}\n\n`);
+        res.write(`event: request\nid: ${record.id}\ndata: ${JSON.stringify(serializeRecord(record))}\n\n`);
       }
     });
 
+    const unsubStatus = events.subscribeStatus((status) => {
+      res.write(`event: status\ndata: ${JSON.stringify(status)}\n\n`);
+    });
+
     req.on('close', () => {
-      unsubscribe();
+      unsubRequest();
+      unsubStatus();
     });
   });
 

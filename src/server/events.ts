@@ -1,9 +1,16 @@
 import type { RequestRecord } from '../shared/types.js';
 
-type Subscriber = (events: RequestRecord[]) => void;
+export interface StatusEvent {
+  running: boolean;
+  proxyPort: number;
+}
+
+type RequestSubscriber = (events: RequestRecord[]) => void;
+type StatusSubscriber = (status: StatusEvent) => void;
 
 export class EventManager {
-  private subscribers: Set<Subscriber> = new Set();
+  private requestSubscribers: Set<RequestSubscriber> = new Set();
+  private statusSubscribers: Set<StatusSubscriber> = new Set();
   private buffer: RequestRecord[] = [];
   private timer: ReturnType<typeof setTimeout> | null = null;
 
@@ -14,19 +21,30 @@ export class EventManager {
     }
   }
 
+  emitStatus(status: StatusEvent): void {
+    for (const sub of this.statusSubscribers) {
+      try { sub(status); } catch {}
+    }
+  }
+
   private flush(): void {
     this.timer = null;
     if (this.buffer.length === 0) return;
     const batch = this.buffer;
     this.buffer = [];
-    for (const sub of this.subscribers) {
+    for (const sub of this.requestSubscribers) {
       try { sub(batch); } catch {}
     }
   }
 
-  subscribe(fn: Subscriber): () => void {
-    this.subscribers.add(fn);
-    return () => { this.subscribers.delete(fn); };
+  subscribe(fn: RequestSubscriber): () => void {
+    this.requestSubscribers.add(fn);
+    return () => { this.requestSubscribers.delete(fn); };
+  }
+
+  subscribeStatus(fn: StatusSubscriber): () => void {
+    this.statusSubscribers.add(fn);
+    return () => { this.statusSubscribers.delete(fn); };
   }
 
   stop(): void {
