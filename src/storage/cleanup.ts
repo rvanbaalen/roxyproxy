@@ -21,12 +21,17 @@ export class Cleanup {
   }
 
   run(): void {
+    // Delete by age
     const cutoff = Date.now() - this.config.maxAge;
     this.db.deleteOlderThan(cutoff);
 
+    // Delete oldest in batches until under size limit
     while (this.db.getDbSize() > this.config.maxDbSize) {
-      const deleted = this.db.deleteOlderThan(Date.now());
+      const deleted = this.db.deleteOldest(100);
       if (deleted === 0) break;
     }
+
+    // Reclaim disk space
+    this.db.incrementalVacuum();
   }
 }

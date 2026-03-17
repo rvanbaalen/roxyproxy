@@ -75,6 +75,12 @@ export function createApiRouter(
     }
   });
 
+  // Shutdown the entire server process
+  router.post('/shutdown', (_req: Request, res: Response) => {
+    res.json({ ok: true });
+    setTimeout(() => process.exit(0), 100);
+  });
+
   router.get('/events', (req: Request, res: Response) => {
     res.writeHead(200, {
       'Content-Type': 'text/event-stream',

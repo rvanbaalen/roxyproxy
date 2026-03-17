@@ -148,6 +148,17 @@ export class Database {
     return stmt.run(timestampMs).changes;
   }
 
+  deleteOldest(limit: number): number {
+    const stmt = this.db.prepare(
+      'DELETE FROM requests WHERE id IN (SELECT id FROM requests ORDER BY timestamp ASC LIMIT ?)'
+    );
+    return stmt.run(limit).changes;
+  }
+
+  incrementalVacuum(): void {
+    this.db.pragma('incremental_vacuum');
+  }
+
   getRequestCount(): number {
     const stmt = this.db.prepare('SELECT COUNT(*) as count FROM requests');
     return (stmt.get() as { count: number }).count;

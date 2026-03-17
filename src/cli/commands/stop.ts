@@ -13,8 +13,8 @@ export function registerStop(program: Command): void {
       const port = parseInt(opts.uiPort, 10);
 
       try {
-        await apiPost(port, '/api/proxy/stop');
-        console.log('Proxy stopped via API.');
+        await apiPost(port, '/api/shutdown');
+        console.log('Server shutting down.');
         return;
       } catch {}
 
