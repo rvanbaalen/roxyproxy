@@ -1,6 +1,11 @@
-# RoxyProxy
+<p align="center">
+  <img src="assets/logo.png" alt="RoxyProxy" width="600" />
+</p>
 
-HTTP/HTTPS intercepting proxy with a CLI and web UI. Captures traffic, stores it in SQLite, and makes it queryable -- by humans and LLMs alike.
+<p align="center">
+  HTTP/HTTPS intercepting proxy with a CLI and web UI.<br>
+  Captures traffic, stores it in SQLite, and makes it queryable -- by humans and LLMs alike.
+</p>
 
 ## Table of Contents
 
