@@ -51,6 +51,12 @@ Standard forward proxy using Node's built-in `http` module. Client sends `GET ht
 - Per-domain certs generated on-the-fly and cached in memory (LRU cache, ~500 domains)
 - CLI command `roxyproxy trust-ca` prints the CA cert path and OS-specific trust instructions
 
+### Error Handling
+
+- If CA generation fails on first run (permissions, disk full), the process exits with a clear error message
+- If per-domain cert generation fails at runtime, the CONNECT tunnel is dropped and the error is logged
+- Failed upstream connections return `502 Bad Gateway` to the client
+
 ### Captured Data Per Request
 
 | Field | Type | Description |
@@ -64,12 +70,13 @@ Standard forward proxy using Node's built-in `http` module. Client sends `GET ht
 | `protocol` | string | `http` or `https` |
 | `request_headers` | JSON | Request headers |
 | `request_body` | Buffer | Request body |
-| `response_status` | integer | HTTP status code |
+| `status` | integer | HTTP response status code |
 | `response_headers` | JSON | Response headers |
 | `response_body` | Buffer | Response body |
 | `duration` | integer | ms from request start to response complete |
 | `request_size` | integer | Request body bytes |
 | `response_size` | integer | Response body bytes |
+| `content_type` | string | Response content-type (extracted from response headers on insert) |
 | `truncated` | boolean | Whether body was truncated |
 
 ### Body Handling
@@ -99,14 +106,15 @@ CREATE TABLE requests (
   response_body BLOB,
   response_size INTEGER,
   duration INTEGER,
-  truncated INTEGER DEFAULT 0,
-  created_at INTEGER NOT NULL
+  content_type TEXT,
+  truncated INTEGER DEFAULT 0
 );
 
 CREATE INDEX idx_timestamp ON requests(timestamp);
 CREATE INDEX idx_host ON requests(host);
 CREATE INDEX idx_status ON requests(status);
-CREATE INDEX idx_method ON requests(method);
+CREATE INDEX idx_path ON requests(path);
+CREATE INDEX idx_content_type ON requests(content_type);
 ```
 
 ### Auto-Cleanup
@@ -114,6 +122,11 @@ CREATE INDEX idx_method ON requests(method);
 - Configurable max age (default: 7 days) and max DB size (default: 500MB)
 - Cleanup runs on a timer every 5 minutes — deletes oldest rows first when either limit is exceeded
 - `PRAGMA auto_vacuum = INCREMENTAL` so the file shrinks after deletes
+
+### Write Strategy
+
+- Writes are batched in a queue and flushed every 100ms using `better-sqlite3` transactions to avoid blocking the event loop during high traffic
+- Reads are synchronous (fast for queries)
 
 ### Concurrency
 
@@ -149,14 +162,32 @@ Served on port `8081` alongside the web UI.
 | `status` | integer | Filter by response status code |
 | `method` | string | Filter by HTTP method |
 | `content_type` | string | Filter by response content-type |
+| `search` | string | Substring match against URL |
 | `since` | ISO 8601 / Unix ms | Requests after this time |
 | `until` | ISO 8601 / Unix ms | Requests before this time |
 | `limit` | integer | Max results (default: 100) |
 | `offset` | integer | Pagination offset |
 
+### Response Envelope
+
+All list endpoints return a paginated envelope:
+
+```json
+{
+  "data": [...],
+  "total": 1234,
+  "limit": 100,
+  "offset": 0
+}
+```
+
 ### Live Updates
 
 Server-Sent Events (SSE) on `GET /api/events` — pushes new requests to the web UI in real time. Simpler than WebSockets, no extra dependencies.
+
+- Each event includes an `id` field (request UUID) so clients can resume via `Last-Event-ID` after reconnection
+- Under high throughput, events are batched (max one push per 100ms) to avoid flooding the browser
+- The web UI maintains a rolling window of the most recent requests in memory
 
 ## CLI
 
@@ -166,16 +197,18 @@ roxyproxy stop
 roxyproxy status
 roxyproxy trust-ca
 roxyproxy requests [--host <pattern>] [--status <code>] [--method <method>]
-                   [--since <time>] [--until <time>] [--limit <n>]
-                   [--format json|table]
+                   [--search <url-pattern>] [--since <time>] [--until <time>]
+                   [--limit <n>] [--format json|table]
 roxyproxy request <id> [--format json|table]
 roxyproxy clear
 ```
 
 ### Behavior
 
-- `requests` and `request` read directly from SQLite (works offline)
-- `start`, `stop`, `status`, `clear` communicate via the REST API
+- `start` runs in the foreground (Ctrl+C to stop). Writes a PID file to `~/.roxyproxy/pid` on startup, removes it on clean shutdown.
+- `stop` sends a shutdown request via REST API. If the API is unreachable, checks the PID file and sends SIGTERM. Prints an error and exits with code 1 if neither works.
+- `requests` and `request` read directly from SQLite (works even when proxy is stopped)
+- `status`, `clear` communicate via the REST API
 - Default output format: `json` (LLM-friendly). Use `--format table` for human readability.
 - `trust-ca` prints the CA cert path and OS-specific instructions for trusting it
 
@@ -254,7 +287,7 @@ roxyproxy/
 ## Dependencies
 
 ### Runtime
-- `better-sqlite3` — SQLite driver (synchronous, fast)
+- `better-sqlite3` — SQLite driver (writes batched via a write queue to avoid blocking the event loop)
 - `node-forge` — CA and certificate generation
 - `commander` — CLI argument parsing
 - `express` — REST API server
