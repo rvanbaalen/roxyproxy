@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { render, Box, Text, useApp, useInput } from 'ink';
 import SelectInput from 'ink-select-input';
 import http from 'node:http';
+import { execFile } from 'node:child_process';
 import path from 'node:path';
 import os from 'node:os';
 import fs from 'node:fs';
 import { loadConfig } from '../server/config.js';
 import { RoxyProxyServer } from '../server/index.js';
 import { Database } from '../storage/db.js';
+import { enableSystemProxy, disableSystemProxy, installCaCert } from './system-proxy.js';
 import type { RequestRecord } from '../shared/types.js';
 
 // ── API helpers ──
@@ -227,15 +229,16 @@ function App() {
   const [server, setServer] = useState<RoxyProxyServer | null>(null);
 
   const menuItems = [
-    { label: '🚀  Start proxy', value: 'start' },
-    { label: '🛑  Stop proxy', value: 'stop' },
-    { label: '📊  Status', value: 'status' },
-    { label: '📋  View requests', value: 'requests' },
-    { label: '🗑   Clear traffic', value: 'clear' },
-    { label: '🔐  Trust CA certificate', value: 'trust-ca' },
-    { label: '🌐  Set system proxy', value: 'proxy-on' },
-    { label: '🚫  Remove system proxy', value: 'proxy-off' },
-    { label: '👋  Quit', value: 'quit' },
+    { label: 'Start proxy', value: 'start' },
+    { label: 'Stop proxy', value: 'stop' },
+    { label: 'Status', value: 'status' },
+    { label: 'View requests', value: 'requests' },
+    { label: 'Clear traffic', value: 'clear' },
+    { label: 'Open web UI', value: 'open-ui' },
+    { label: 'Trust CA certificate', value: 'trust-ca' },
+    { label: 'Set system proxy', value: 'proxy-on' },
+    { label: 'Remove system proxy', value: 'proxy-off' },
+    { label: 'Quit', value: 'quit' },
   ];
 
   const handleSelect = async (item: { value: string }) => {
@@ -306,21 +309,31 @@ function App() {
         }
         break;
       }
-      case 'trust-ca': {
-        const certPath = path.join(os.homedir(), '.roxyproxy', 'ca', 'ca.crt');
-        if (!fs.existsSync(certPath)) {
-          setMessage('CA not found. Start the proxy first.');
-        } else {
-          setMessage(`CA cert: ${certPath} — run "roxyproxy trust-ca" for interactive install`);
-        }
+      case 'open-ui': {
+        const uiUrl = 'http://127.0.0.1:8081';
+        const cmd = os.platform() === 'darwin' ? 'open' : os.platform() === 'win32' ? 'start' : 'xdg-open';
+        execFile(cmd, [uiUrl], () => {});
+        setMessage(`Opening ${uiUrl}`);
         break;
       }
-      case 'proxy-on':
-        setMessage('Run "roxyproxy proxy-on" for system proxy setup');
+      case 'trust-ca': {
+        setMessage('Installing CA certificate...');
+        const caResult = await installCaCert();
+        setMessage(caResult.message);
         break;
-      case 'proxy-off':
-        setMessage('Run "roxyproxy proxy-off" to remove system proxy');
+      }
+      case 'proxy-on': {
+        setMessage('Configuring system proxy...');
+        const onResult = await enableSystemProxy();
+        setMessage(onResult.message);
         break;
+      }
+      case 'proxy-off': {
+        setMessage('Removing system proxy...');
+        const offResult = await disableSystemProxy();
+        setMessage(offResult.message);
+        break;
+      }
       case 'quit':
         if (server) {
           await server.stop();
