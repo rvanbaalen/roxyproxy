@@ -23,7 +23,6 @@
     "url": "git+https://github.com/rvanbaalen/roxyproxy.git"
   },
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com",
     "access": "public"
   },
   "license": "MIT",
