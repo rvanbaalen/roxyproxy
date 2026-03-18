@@ -66,8 +66,10 @@ export function App() {
         </div>
         {selectedId && (
           <>
-            <ResizeHandle onResize={handleResize} />
-            <div className="flex-shrink-0 overflow-hidden" style={{ width: panelWidth }}>
+            <div className="hidden md:flex">
+              <ResizeHandle onResize={handleResize} />
+            </div>
+            <div className="detail-panel fixed inset-0 z-50 md:static md:inset-auto md:z-auto md:flex-shrink-0 md:overflow-hidden" style={{ width: panelWidth }}>
               <RequestDetail requestId={selectedId} onClose={() => setSelectedId(null)} />
             </div>
           </>

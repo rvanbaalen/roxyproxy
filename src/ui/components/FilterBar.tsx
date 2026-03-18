@@ -18,9 +18,9 @@ export function FilterBar({
   const hasFilters = !!(status || method || search);
 
   return (
-    <div className="flex items-center gap-2 p-3 bg-gray-900 border-b border-gray-800">
+    <div className="flex flex-wrap items-center gap-2 p-2 md:p-3 bg-gray-900 border-b border-gray-800">
       <input type="text" placeholder="Status" value={status} onChange={(e) => onStatusChange(e.target.value)}
-        className="bg-gray-800 text-gray-100 px-2 py-1 rounded text-sm border border-gray-700 w-20 focus:border-blue-500 focus:outline-none" />
+        className="bg-gray-800 text-gray-100 px-2 py-1 rounded text-sm border border-gray-700 w-16 md:w-20 focus:border-blue-500 focus:outline-none" />
       <select value={method} onChange={(e) => onMethodChange(e.target.value)}
         className="bg-gray-800 text-gray-100 px-2 py-1 rounded text-sm border border-gray-700 focus:border-blue-500 focus:outline-none">
         <option value="">All Methods</option>
@@ -32,7 +32,7 @@ export function FilterBar({
         <option value="OPTIONS">OPTIONS</option>
       </select>
       <input type="text" placeholder="Search URL..." value={search} onChange={(e) => onSearchChange(e.target.value)}
-        className="bg-gray-800 text-gray-100 px-2 py-1 rounded text-sm border border-gray-700 flex-1 focus:border-blue-500 focus:outline-none" />
+        className="bg-gray-800 text-gray-100 px-2 py-1 rounded text-sm border border-gray-700 flex-1 min-w-[8rem] focus:border-blue-500 focus:outline-none" />
       {hasFilters && (
         <>
           <span className="text-xs text-gray-500">{matchCount}/{totalCount}</span>

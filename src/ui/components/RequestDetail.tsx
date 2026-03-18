@@ -31,9 +31,10 @@ function shellQuote(s: string): string {
 interface RequestDetailProps {
   requestId: string;
   onClose: () => void;
+  onSendToRepeater?: (data: { url: string; method: string; headers: string; body: string }) => void;
 }
 
-export function RequestDetail({ requestId, onClose }: RequestDetailProps) {
+export function RequestDetail({ requestId, onClose, onSendToRepeater }: RequestDetailProps) {
   const [record, setRecord] = useState<RequestRecord | null>(null);
   const [activeTab, setActiveTab] = useState<'request' | 'response'>('response');
 
@@ -49,13 +50,24 @@ export function RequestDetail({ requestId, onClose }: RequestDetailProps) {
     });
   }, [record]);
 
+  const sendToRepeater = useCallback(() => {
+    if (!record || !onSendToRepeater) return;
+    const headers = parseHeaders(record.request_headers);
+    const headersText = Object.entries(headers)
+      .filter(([key]) => !SKIP_HEADERS.has(key.toLowerCase()))
+      .map(([key, value]) => `${key}: ${value}`)
+      .join('\n');
+    const body = record.request_body ? decodeBody(record.request_body) : '';
+    onSendToRepeater({ url: record.url, method: record.method, headers: headersText, body });
+  }, [record, onSendToRepeater]);
+
   if (!record) return <div className="p-4 text-gray-500">Loading...</div>;
 
   const requestHeaders = parseHeaders(record.request_headers);
   const responseHeaders = parseHeaders(record.response_headers);
 
   return (
-    <div className="flex flex-col h-full bg-gray-900 border-l border-gray-800">
+    <div className="flex flex-col h-full bg-gray-900 md:border-l border-gray-800">
       <div className="flex items-center justify-between p-3 border-b border-gray-800">
         <div className="flex items-center gap-2 text-sm min-w-0">
           <span className="font-mono font-bold text-blue-400">{record.method}</span>
@@ -63,13 +75,18 @@ export function RequestDetail({ requestId, onClose }: RequestDetailProps) {
           <span className="text-gray-400 truncate">{record.url}</span>
         </div>
         <div className="flex items-center gap-1 shrink-0">
+          {onSendToRepeater && (
+            <button onClick={sendToRepeater} className="text-xs px-2 py-1 rounded bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700 transition-colors" title="Send to Repeater">
+              Repeater
+            </button>
+          )}
           <button onClick={copyCurl} className="text-xs px-2 py-1 rounded bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700 transition-colors" title="Copy as cURL">
             {copied ? 'Copied!' : 'cURL'}
           </button>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-300 text-lg px-2">&times;</button>
         </div>
       </div>
-      <div className="flex gap-4 px-3 py-2 text-xs text-gray-500 border-b border-gray-800">
+      <div className="flex flex-wrap gap-x-4 gap-y-1 px-3 py-2 text-xs text-gray-500 border-b border-gray-800">
         <span>Duration: {record.duration}ms</span>
         <span>Size: {record.response_size}B</span>
         <span>Protocol: {record.protocol}</span>

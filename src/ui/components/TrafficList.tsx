@@ -11,14 +11,14 @@ interface TrafficListProps {
 type SortKey = 'timestamp' | 'method' | 'status' | 'host' | 'path' | 'duration' | 'response_size';
 type SortDir = 'asc' | 'desc';
 
-const COLUMNS: { key: SortKey; label: string; minPx: number; align?: 'right' }[] = [
+const COLUMNS: { key: SortKey; label: string; minPx: number; align?: 'right'; hideClass?: string }[] = [
   { key: 'timestamp', label: 'Time', minPx: 110 },
   { key: 'method', label: 'Method', minPx: 90 },
   { key: 'status', label: 'Status', minPx: 80 },
-  { key: 'host', label: 'Host', minPx: 90 },
+  { key: 'host', label: 'Host', minPx: 90, hideClass: 'hidden md:table-cell' },
   { key: 'path', label: 'Path', minPx: 120 },
-  { key: 'duration', label: 'Duration', minPx: 100, align: 'right' },
-  { key: 'response_size', label: 'Size', minPx: 70, align: 'right' },
+  { key: 'duration', label: 'Duration', minPx: 100, align: 'right', hideClass: 'hidden lg:table-cell' },
+  { key: 'response_size', label: 'Size', minPx: 70, align: 'right', hideClass: 'hidden lg:table-cell' },
 ];
 
 // Initial width fractions (sum to 1)
@@ -147,8 +147,8 @@ export function TrafficList({ requests, selectedId, onSelect }: TrafficListProps
 
   return (
     <div ref={containerRef} className="flex-1 overflow-auto">
-      <table className="w-full text-sm" style={{ tableLayout: 'fixed' }}>
-        <colgroup>
+      <table className="w-full text-sm table-auto md:table-fixed">
+        <colgroup className="hidden md:table-column-group">
           {colWidths.map((w, i) => (
             <col key={i} style={{ width: `${(w * 100).toFixed(2)}%`, minWidth: COLUMNS[i].minPx }} />
           ))}
@@ -158,7 +158,7 @@ export function TrafficList({ requests, selectedId, onSelect }: TrafficListProps
             {COLUMNS.map((col, i) => (
               <th
                 key={col.key}
-                className={`px-3 py-2 relative cursor-pointer select-none hover:text-gray-200 transition-colors ${col.align === 'right' ? 'text-right' : ''}`}
+                className={`px-3 py-2 relative cursor-pointer select-none hover:text-gray-200 transition-colors ${col.align === 'right' ? 'text-right' : ''} ${col.hideClass || ''}`}
                 onClick={() => handleSort(col.key)}
               >
                 <span className="inline-flex items-center gap-1">
@@ -167,7 +167,7 @@ export function TrafficList({ requests, selectedId, onSelect }: TrafficListProps
                 </span>
                 {i < COLUMNS.length - 1 && (
                   <div
-                    className="absolute -right-1 top-0 bottom-0 w-2 cursor-col-resize z-10 group"
+                    className="absolute -right-1 top-0 bottom-0 w-2 cursor-col-resize z-10 group hidden md:block"
                     onMouseDown={(e) => handleResizeStart(e, i)}
                   >
                     <div className="mx-auto w-px h-full group-hover:bg-blue-400/60" />
@@ -187,7 +187,7 @@ export function TrafficList({ requests, selectedId, onSelect }: TrafficListProps
               {COLUMNS.map((col) => (
                 <td
                   key={col.key}
-                  className={`px-3 py-1.5 truncate ${col.align === 'right' ? 'text-right' : ''}`}
+                  className={`px-3 py-1.5 truncate ${col.align === 'right' ? 'text-right' : ''} ${col.hideClass || ''}`}
                 >
                   {renderCell(req, col.key)}
                 </td>

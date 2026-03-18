@@ -1,1 +1,8 @@
 @import "tailwindcss";
+
+/* Override inline panel width on mobile so the detail overlay fills the screen */
+@media (width < 48rem) {
+  .detail-panel {
+    width: auto !important;
+  }
+}

@@ -41,24 +41,24 @@ export function Controls({ onClear, statusEvent }: ControlsProps) {
   };
 
   return (
-    <div className="flex items-center gap-4 p-3 bg-gray-900 border-b border-gray-800">
-      <h1 className="text-lg font-bold text-white mr-4">RoxyProxy</h1>
+    <div className="flex flex-wrap items-center gap-2 md:gap-4 p-3 bg-gray-900 border-b border-gray-800">
+      <h1 className="text-lg font-bold text-white mr-2 md:mr-4">RoxyProxy</h1>
       <button onClick={toggleProxy} className={`px-3 py-1 rounded text-sm font-medium ${status?.running ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-green-600 hover:bg-green-700 text-white'}`}>
         {status?.running ? 'Stop' : 'Start'}
       </button>
       <button onClick={handleClear} className="bg-gray-700 hover:bg-gray-600 text-gray-300 px-3 py-1 rounded text-sm">Clear</button>
       {status && (
-        <div className="flex items-center gap-4 text-sm text-gray-400 ml-auto">
+        <div className="flex flex-wrap items-center gap-2 md:gap-4 text-sm text-gray-400 w-full md:w-auto md:ml-auto">
           <span className={`flex items-center gap-1 ${status.running ? 'text-green-400' : 'text-red-400'}`}>
             <span className={`w-2 h-2 rounded-full ${status.running ? 'bg-green-400' : 'bg-red-400'}`} />
             {status.running ? 'Running' : 'Stopped'}
           </span>
           <span>Port: {status.proxyPort}</span>
-          <span>Requests: {status.requestCount}</span>
-          <span>DB: {formatBytes(status.dbSizeBytes)}</span>
+          <span className="hidden sm:inline">Requests: {status.requestCount}</span>
+          <span className="hidden sm:inline">DB: {formatBytes(status.dbSizeBytes)}</span>
           <a href="/api/ca.crt" download className="text-cyan-400 hover:text-cyan-300 underline underline-offset-2">CA Cert</a>
           {status.hostname && (
-            <span className="text-gray-500" title="Open this URL on your iOS device to access the web UI and download the CA cert">
+            <span className="hidden lg:inline text-gray-500" title="Open this URL on your iOS device to access the web UI and download the CA cert">
               Network: <a href={`http://${status.hostname}:${window.location.port || 8081}`} className="text-cyan-400 hover:text-cyan-300 underline underline-offset-2">{status.hostname}:{window.location.port || 8081}</a>
             </span>
           )}
