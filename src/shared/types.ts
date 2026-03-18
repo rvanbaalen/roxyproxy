@@ -64,3 +64,18 @@ export interface RequestFilter {
   limit?: number;
   offset?: number;
 }
+
+export interface ReplayRequest {
+  url: string;
+  method: string;
+  headers: Record<string, string | string[]>;
+  body?: string;
+}
+
+export interface ReplayResponse {
+  status: number;
+  headers: Record<string, string | string[]>;
+  body: string;
+  duration: number;
+  size: number;
+}
