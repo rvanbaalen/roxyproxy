@@ -15,27 +15,24 @@ export function App() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [panelWidth, setPanelWidth] = useState(DEFAULT_PANEL_WIDTH);
 
-  const [filterHost, setFilterHost] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [filterMethod, setFilterMethod] = useState('');
   const [filterSearch, setFilterSearch] = useState('');
 
   const filteredRequests = useMemo(() => {
-    const host = filterHost.toLowerCase();
     const status = filterStatus;
     const method = filterMethod;
     const search = filterSearch.toLowerCase();
 
-    if (!host && !status && !method && !search) return liveRequests;
+    if (!status && !method && !search) return liveRequests;
 
     return liveRequests.filter((r) => {
-      if (host && !r.host.toLowerCase().includes(host)) return false;
       if (status && String(r.status) !== status) return false;
       if (method && r.method !== method) return false;
       if (search && !r.url.toLowerCase().includes(search)) return false;
       return true;
     });
-  }, [liveRequests, filterHost, filterStatus, filterMethod, filterSearch]);
+  }, [liveRequests, filterStatus, filterMethod, filterSearch]);
 
   const handleClear = useCallback(() => { setSelectedId(null); clearLocal(); }, [clearLocal]);
 
@@ -48,7 +45,6 @@ export function App() {
   }, []);
 
   const clearFilters = useCallback(() => {
-    setFilterHost('');
     setFilterStatus('');
     setFilterMethod('');
     setFilterSearch('');
@@ -58,8 +54,8 @@ export function App() {
     <div className="flex flex-col h-screen">
       <Controls onClear={handleClear} statusEvent={statusEvent} />
       <FilterBar
-        host={filterHost} status={filterStatus} method={filterMethod} search={filterSearch}
-        onHostChange={setFilterHost} onStatusChange={setFilterStatus}
+        status={filterStatus} method={filterMethod} search={filterSearch}
+        onStatusChange={setFilterStatus}
         onMethodChange={setFilterMethod} onSearchChange={setFilterSearch}
         onClearFilters={clearFilters}
         matchCount={filteredRequests.length} totalCount={liveRequests.length}

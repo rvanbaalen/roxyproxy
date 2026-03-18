@@ -1,9 +1,7 @@
 interface FilterBarProps {
-  host: string;
   status: string;
   method: string;
   search: string;
-  onHostChange: (v: string) => void;
   onStatusChange: (v: string) => void;
   onMethodChange: (v: string) => void;
   onSearchChange: (v: string) => void;
@@ -13,16 +11,14 @@ interface FilterBarProps {
 }
 
 export function FilterBar({
-  host, status, method, search,
-  onHostChange, onStatusChange, onMethodChange, onSearchChange, onClearFilters,
+  status, method, search,
+  onStatusChange, onMethodChange, onSearchChange, onClearFilters,
   matchCount, totalCount,
 }: FilterBarProps) {
-  const hasFilters = !!(host || status || method || search);
+  const hasFilters = !!(status || method || search);
 
   return (
     <div className="flex items-center gap-2 p-3 bg-gray-900 border-b border-gray-800">
-      <input type="text" placeholder="Host" value={host} onChange={(e) => onHostChange(e.target.value)}
-        className="bg-gray-800 text-gray-100 px-2 py-1 rounded text-sm border border-gray-700 w-40 focus:border-blue-500 focus:outline-none" />
       <input type="text" placeholder="Status" value={status} onChange={(e) => onStatusChange(e.target.value)}
         className="bg-gray-800 text-gray-100 px-2 py-1 rounded text-sm border border-gray-700 w-20 focus:border-blue-500 focus:outline-none" />
       <select value={method} onChange={(e) => onMethodChange(e.target.value)}
