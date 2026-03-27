@@ -48,6 +48,7 @@ export class Database {
       CREATE INDEX IF NOT EXISTS idx_status ON requests(status);
       CREATE INDEX IF NOT EXISTS idx_path ON requests(path);
       CREATE INDEX IF NOT EXISTS idx_content_type ON requests(content_type);
+      CREATE INDEX IF NOT EXISTS idx_duration ON requests(duration);
     `);
   }
 
@@ -106,6 +107,18 @@ export class Database {
     if (filter.status !== undefined) {
       conditions.push('status = @status');
       params.status = filter.status;
+    }
+    if (filter.statusMin !== undefined) {
+      conditions.push('status >= @statusMin');
+      params.statusMin = filter.statusMin;
+    }
+    if (filter.statusMax !== undefined) {
+      conditions.push('status <= @statusMax');
+      params.statusMax = filter.statusMax;
+    }
+    if (filter.durationMin !== undefined) {
+      conditions.push('duration > @durationMin');
+      params.durationMin = filter.durationMin;
     }
     if (filter.method) {
       conditions.push('method = @method');

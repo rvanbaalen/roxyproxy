@@ -125,4 +125,50 @@ describe('Database', () => {
     db.insertBatch(requests);
     expect(db.getRequestCount()).toBe(3);
   });
+
+  it('queries with statusMin filter', () => {
+    db.insert(makeRequest({ status: 200 }));
+    db.insert(makeRequest({ status: 404 }));
+    db.insert(makeRequest({ status: 500 }));
+    const result = db.query({ statusMin: 400 });
+    expect(result.data).toHaveLength(2);
+    expect(result.data.map((r) => r.status).sort()).toEqual([404, 500]);
+  });
+
+  it('queries with statusMax filter', () => {
+    db.insert(makeRequest({ status: 200 }));
+    db.insert(makeRequest({ status: 404 }));
+    db.insert(makeRequest({ status: 500 }));
+    const result = db.query({ statusMax: 399 });
+    expect(result.data).toHaveLength(1);
+    expect(result.data[0].status).toBe(200);
+  });
+
+  it('queries with statusMin + statusMax range', () => {
+    db.insert(makeRequest({ status: 200 }));
+    db.insert(makeRequest({ status: 404 }));
+    db.insert(makeRequest({ status: 500 }));
+    const result = db.query({ statusMin: 400, statusMax: 499 });
+    expect(result.data).toHaveLength(1);
+    expect(result.data[0].status).toBe(404);
+  });
+
+  it('queries with durationMin filter', () => {
+    db.insert(makeRequest({ duration: 50 }));
+    db.insert(makeRequest({ duration: 200 }));
+    db.insert(makeRequest({ duration: 1000 }));
+    const result = db.query({ durationMin: 500 });
+    expect(result.data).toHaveLength(1);
+    expect(result.data[0].duration).toBe(1000);
+  });
+
+  it('combines statusMin with host filter', () => {
+    db.insert(makeRequest({ status: 200, host: 'api.com' }));
+    db.insert(makeRequest({ status: 500, host: 'api.com' }));
+    db.insert(makeRequest({ status: 500, host: 'cdn.com' }));
+    const result = db.query({ statusMin: 400, host: 'api' });
+    expect(result.data).toHaveLength(1);
+    expect(result.data[0].status).toBe(500);
+    expect(result.data[0].host).toBe('api.com');
+  });
 });

@@ -56,11 +56,14 @@ export interface ProxyStatus {
 export interface RequestFilter {
   host?: string;
   status?: number;
+  statusMin?: number;
+  statusMax?: number;
   method?: string;
   content_type?: string;
   search?: string;
   since?: number;
   until?: number;
+  durationMin?: number;
   limit?: number;
   offset?: number;
 }
