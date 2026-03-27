@@ -19,6 +19,10 @@
 
 **Other proxy tools show traffic to humans.** RoxyProxy makes it queryable by Claude Code. Tell your AI "the Stripe webhook is failing, debug it" and it queries RoxyProxy, finds the 422 response, reads the error body, and fixes your code.
 
+<p align="center">
+  <img src="demo/roxyproxy-demo.gif" alt="RoxyProxy demo — one prompt to debug any API" width="720" />
+</p>
+
 ```bash
 # Install and start capturing traffic in 10 seconds
 npx @rvanbaalen/roxyproxy requests --tail
