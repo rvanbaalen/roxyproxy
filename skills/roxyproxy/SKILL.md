@@ -1,12 +1,12 @@
 ---
 name: roxyproxy
 description: Use when working with RoxyProxy, intercepting HTTP/HTTPS traffic, debugging API calls, inspecting network requests, or when the user mentions roxyproxy, proxy traffic, captured requests, or network debugging. Also use when the user asks to start/stop a proxy, view traffic, configure HTTPS interception, or debug why an API call is failing. Trigger even when the user just says "capture traffic", "inspect requests", "what is my app sending", or "debug this API".
-version: 1.1.0
+version: 1.2.0
 ---
 
 # RoxyProxy
 
-RoxyProxy is an HTTP/HTTPS intercepting proxy with a CLI and web UI. It captures traffic, stores it in SQLite, and makes it queryable. Developed and tested on **macOS**.
+RoxyProxy is an HTTP/HTTPS intercepting proxy with a CLI and web UI. It captures traffic, stores it in SQLite, and makes it queryable. Works on **macOS** and **Linux**.
 
 Install: `npm install -g @rvanbaalen/roxyproxy`
 Run without installing: `npx @rvanbaalen/roxyproxy`
@@ -67,7 +67,11 @@ Query captured requests. Default output is a human-readable table.
 | `--since <time>` | | After timestamp (Unix ms or ISO date) |
 | `--until <time>` | | Before timestamp (Unix ms or ISO date) |
 | `--limit <n>` | `100` | Max results |
-| `--format <fmt>` | `table` | `table` or `json` |
+| `--format <fmt>` | `table` | `table`, `json`, or `agent` |
+| `--failed` | | Shortcut: only 4xx/5xx responses (statusMin=400) |
+| `--last-hour` | | Shortcut: requests from the last hour |
+| `--last-day` | | Shortcut: requests from the last 24 hours |
+| `--slow <ms>` | | Shortcut: requests slower than threshold (e.g. `--slow 500`) |
 | `--tail` | | Real-time interactive TUI (auto-starts proxy + system proxy) |
 | `--ui-port <number>` | `8081` | API port (used with `--tail`) |
 | `--db-path <path>` | `~/.roxyproxy/data.db` | Database location |
@@ -85,7 +89,7 @@ Show full details of a single captured request: URL, method, status, duration, h
 
 | Option | Default | Description |
 |---|---|---|
-| `--format <fmt>` | `json` | `json` or `table` |
+| `--format <fmt>` | `json` | `json`, `table`, or `agent` |
 | `--db-path <path>` | `~/.roxyproxy/data.db` | Database location |
 
 ```bash
@@ -112,6 +116,49 @@ Configure RoxyProxy as the macOS system-wide HTTP/HTTPS proxy. Auto-detects the 
 ### `roxyproxy proxy-off [--service <name>]`
 
 Remove RoxyProxy from system proxy settings.
+
+### `roxyproxy replay <id> [options]`
+
+Resend a previously captured request. Useful for reproducing issues or testing fixes.
+
+| Option | Default | Description |
+|---|---|---|
+| `--ui-port <number>` | `8081` | API port |
+
+```bash
+# Replay a captured request
+roxyproxy replay a1b2c3d4-e5f6-7890-abcd-ef1234567890
+```
+
+## Agent Output Format (`--format agent`)
+
+The `agent` format returns enriched JSON optimized for LLM consumption. Use this when debugging via Claude Code instead of `json` or `table`.
+
+**List view** (`roxyproxy requests --format agent`): returns an array of enriched records with decoded bodies, `is_error` flag, and timing metadata.
+
+**Detail view** (`roxyproxy request <id> --format agent`): returns a single enriched record with full request/response bodies decoded (not base64), a human-readable `summary` line, and `context.is_error` for quick triage.
+
+```bash
+# Get all failed requests in agent-optimized format
+roxyproxy requests --failed --format agent
+
+# Get full detail for a specific request
+roxyproxy request <uuid> --format agent
+```
+
+## Smart Filter Aliases
+
+Convenience shortcuts that map to common filter combinations:
+
+```bash
+roxyproxy requests --failed              # status >= 400
+roxyproxy requests --last-hour           # since 1 hour ago
+roxyproxy requests --last-day            # since 24 hours ago
+roxyproxy requests --slow 500            # duration > 500ms
+roxyproxy requests --failed --last-hour  # combine filters
+```
+
+`--status` overrides `--failed` if both are specified.
 
 ## Interactive Tail TUI
 
@@ -182,52 +229,60 @@ Available at `http://127.0.0.1:8081/api` when the proxy is running.
 | `/api/proxy/stop` | POST | Stop the proxy |
 | `/api/shutdown` | POST | Shut down the entire process |
 | `/api/events` | GET | SSE stream for real-time traffic |
+| `/api/replay` | POST | Replay a captured request (body: `{ url, method, headers, body }`) |
 
 ## Using RoxyProxy as Claude (agent workflow)
 
-When you (Claude) need to debug HTTP traffic — for example, the user says "why is this API call failing" or "what's my app sending to Stripe" — you can use RoxyProxy directly via the CLI with JSON output. This is much faster than asking the user to describe what they see.
+When you (Claude) need to debug HTTP traffic — for example, the user says "why is this API call failing" or "what's my app sending to Stripe" — use `--format agent` for enriched, LLM-optimized output. This is much faster than asking the user to describe what they see.
 
-### Step 1: Start tailing with JSON output
-
-```bash
-roxyproxy requests --host <relevant-host> --format json --tail
-```
-
-This streams newline-delimited JSON to stdout. Each line is a summary with `id`, `method`, `status`, `host`, `path`, `url`, and `duration`. Run this in the background, then ask the user to reproduce the issue.
-
-### Step 2: Inspect specific requests
-
-Once you spot a relevant request in the stream, use its `id` to get the full detail:
+### Step 1: Find failing requests
 
 ```bash
-roxyproxy request <uuid>
+# Get all recent failures with enriched output
+roxyproxy requests --host <relevant-host> --failed --format agent
+
+# Or narrow by time
+roxyproxy requests --host <relevant-host> --failed --last-hour --format agent
 ```
 
-This returns JSON with the complete request and response: headers (`request_headers`, `response_headers` as JSON strings), bodies (`request_body`, `response_body`), status code, timing, and URL. Bodies are the raw content — JSON bodies are parseable directly.
+The `agent` format returns decoded bodies (not base64), `is_error` flags, and timing metadata — everything you need to diagnose the issue.
 
-### Step 3: Query captured traffic after the fact
-
-If the proxy is already running and traffic has been captured, query the database directly:
+### Step 2: Inspect a specific request
 
 ```bash
-# Get recent failures as JSON
-roxyproxy requests --host api.example.com --status 500 --format json
-
-# Get all POST requests to a specific endpoint
-roxyproxy requests --host api.example.com --method POST --search "/webhooks" --format json
-
-# Get full detail for a specific request
-roxyproxy request <uuid>
+roxyproxy request <uuid> --format agent
 ```
 
-### Example: diagnosing a 401 error
+Returns the full request and response with decoded bodies, headers, a human-readable summary line, and error context. JSON bodies are already parsed.
+
+### Step 3: Replay to verify a fix
+
+After identifying the issue and applying a fix, replay the original request to verify:
+
+```bash
+roxyproxy replay <uuid>
+```
+
+### Step 4: Tail for real-time debugging
+
+If the issue needs live reproduction:
+
+```bash
+roxyproxy requests --host <relevant-host> --format agent --tail
+```
+
+Streams enriched JSON to stdout in real-time. Run this, then ask the user to reproduce the issue.
+
+### Example: diagnosing a 422 error
 
 ```bash
 # 1. Find the failing request
-roxyproxy requests --host api.example.com --status 401 --format json --limit 1
+roxyproxy requests --host api.example.com --failed --format agent --limit 1
 # 2. Read the full detail (replace with actual UUID from step 1)
-roxyproxy request <uuid-from-step-1>
-# 3. Now you can see the Authorization header, request body, and the error response
+roxyproxy request <uuid-from-step-1> --format agent
+# 3. The agent format shows decoded body, error context, and timing
+# 4. After fixing, replay to verify
+roxyproxy replay <uuid-from-step-1>
 ```
 
 This pattern works for any HTTP debugging task — auth failures, unexpected response bodies, missing headers, wrong payloads, CORS preflight issues, etc.
@@ -276,7 +331,10 @@ roxyproxy requests --host api.thirdparty.com --tail
 ### Find slow requests
 
 ```bash
-# Capture traffic, then query for all requests and sort by eye in the table
+# Find requests slower than 500ms
+roxyproxy requests --host api.example.com --slow 500 --format agent
+
+# Or browse visually in the table
 roxyproxy requests --host api.example.com --format table --limit 50
 # The TIME column shows duration in ms — spot outliers
 ```
@@ -328,7 +386,7 @@ Priority: CLI flags > config file > defaults.
 
 ## Platform Notes
 
-Developed and tested on **macOS**. Core proxy and query features work on Linux, but these are macOS-only:
+Works on **macOS** and **Linux**. Core proxy, query, and web UI features work on both platforms. These are macOS-only:
 
 - System proxy (`proxy-on` / `proxy-off`)
 - Auto-enable system proxy with `--tail`
