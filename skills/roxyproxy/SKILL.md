@@ -123,12 +123,26 @@ Resend a previously captured request. Useful for reproducing issues or testing f
 
 | Option | Default | Description |
 |---|---|---|
-| `--ui-port <number>` | `8081` | API port |
+| `--method <method>` | (original) | Override HTTP method |
+| `--url <url>` | (original) | Override URL |
+| `--header <header...>` | (original) | Override/add header (format: "Key: Value") |
+| `--body <body>` | (original) | Override body (raw string) |
+| `--diff` | off | Show diff between original and replay response |
+| `--format <format>` | `json` | Output format (json\|table\|agent) |
+| `--db-path <path>` | (config) | Database path |
 
 ```bash
 # Replay a captured request
 roxyproxy replay a1b2c3d4-e5f6-7890-abcd-ef1234567890
+
+# Replay with diff to see if a fix worked
+roxyproxy replay a1b2c3d4 --diff
+
+# Replay with diff in agent format (best for LLM consumption)
+roxyproxy replay a1b2c3d4 --diff --format agent
 ```
+
+**Diff output** shows whether the replay status improved, regressed, changed, or stayed the same compared to the original captured response. Exit codes: 0 = replay is 2xx, 1 = replay is 4xx/5xx, 2 = connection failure.
 
 ## Agent Output Format (`--format agent`)
 
@@ -255,13 +269,15 @@ roxyproxy request <uuid> --format agent
 
 Returns the full request and response with decoded bodies, headers, a human-readable summary line, and error context. JSON bodies are already parsed.
 
-### Step 3: Replay to verify a fix
+### Step 3: Replay with diff to verify a fix
 
-After identifying the issue and applying a fix, replay the original request to verify:
+After identifying the issue and applying a fix, replay the original request and diff against the original response:
 
 ```bash
-roxyproxy replay <uuid>
+roxyproxy replay <uuid> --diff --format agent
 ```
+
+The `--diff` flag shows whether the status improved, regressed, or stayed the same. The agent format returns structured JSON with `result` ("improved", "regressed", "changed", "unchanged"), `status_changed`, and `body_changed` fields. Exit code 0 means the replay returned 2xx (success).
 
 ### Step 4: Tail for real-time debugging
 
@@ -281,8 +297,8 @@ roxyproxy requests --host api.example.com --failed --format agent --limit 1
 # 2. Read the full detail (replace with actual UUID from step 1)
 roxyproxy request <uuid-from-step-1> --format agent
 # 3. The agent format shows decoded body, error context, and timing
-# 4. After fixing, replay to verify
-roxyproxy replay <uuid-from-step-1>
+# 4. After fixing, replay with diff to verify
+roxyproxy replay <uuid-from-step-1> --diff --format agent
 ```
 
 This pattern works for any HTTP debugging task — auth failures, unexpected response bodies, missing headers, wrong payloads, CORS preflight issues, etc.

@@ -2,44 +2,7 @@ import type { Command } from 'commander';
 import { Database } from '../../storage/db.js';
 import { loadConfig } from '../../server/config.js';
 import { replay, recordToReplayRequest } from '../../server/replay.js';
-import type { ReplayResponse } from '../../shared/types.js';
-import pc from 'picocolors';
-
-function formatReplayResponse(response: ReplayResponse, format: string): string {
-  if (format === 'json') {
-    return JSON.stringify({
-      ...response,
-      body: Buffer.from(response.body, 'base64').toString('utf-8'),
-    }, null, 2);
-  }
-
-  const lines: string[] = [
-    '',
-    `  ${pc.dim('Status')}    ${response.status < 400 ? pc.green(String(response.status)) : pc.red(String(response.status))}`,
-    `  ${pc.dim('Duration')}  ${response.duration}ms`,
-    `  ${pc.dim('Size')}      ${response.size}B`,
-    '',
-    `  ${pc.bold('Response Headers')}`,
-  ];
-
-  for (const [key, value] of Object.entries(response.headers)) {
-    const vals = Array.isArray(value) ? value : [value];
-    for (const v of vals) {
-      lines.push(`  ${pc.magenta(key)}${pc.dim(':')} ${v}`);
-    }
-  }
-
-  const bodyStr = Buffer.from(response.body, 'base64').toString('utf-8');
-  if (bodyStr) {
-    lines.push('', `  ${pc.bold('Response Body')}`);
-    let formatted = bodyStr;
-    try { formatted = JSON.stringify(JSON.parse(bodyStr), null, 2); } catch {}
-    lines.push(...formatted.split('\n').map(line => `  ${line}`));
-  }
-
-  lines.push('');
-  return lines.join('\n');
-}
+import { formatReplayResponse, formatDiff } from '../format.js';
 
 export function registerReplay(program: Command): void {
   program
@@ -49,6 +12,7 @@ export function registerReplay(program: Command): void {
     .option('--url <url>', 'Override URL')
     .option('--header <header...>', 'Override/add header (format: "Key: Value")')
     .option('--body <body>', 'Override body (raw string)')
+    .option('--diff', 'Show diff between original and replay response')
     .option('--format <format>', 'Output format (json|table)', 'json')
     .option('--db-path <path>', 'Database path')
     .action(async (id, opts) => {
@@ -83,10 +47,20 @@ export function registerReplay(program: Command): void {
 
       try {
         const response = await replay(request);
-        console.log(formatReplayResponse(response, opts.format));
+        if (opts.diff) {
+          console.log(formatDiff(record, response, opts.format));
+          // Exit code: 0 if replay is 2xx, 1 if 4xx/5xx
+          if (response.status >= 400) {
+            db.close();
+            process.exit(1);
+          }
+        } else {
+          console.log(formatReplayResponse(response, opts.format));
+        }
       } catch (err) {
         console.error(`Replay failed: ${(err as Error).message}`);
-        process.exit(1);
+        db.close();
+        process.exit(2);
       } finally {
         db.close();
       }

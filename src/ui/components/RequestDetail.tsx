@@ -31,7 +31,7 @@ function shellQuote(s: string): string {
 interface RequestDetailProps {
   requestId: string;
   onClose: () => void;
-  onSendToRepeater?: (data: { url: string; method: string; headers: string; body: string }) => void;
+  onSendToRepeater?: (data: { url: string; method: string; headers: string; body: string; originalResponse?: { status: number | null; body: string | null; contentType: string | null } }) => void;
 }
 
 export function RequestDetail({ requestId, onClose, onSendToRepeater }: RequestDetailProps) {
@@ -58,7 +58,17 @@ export function RequestDetail({ requestId, onClose, onSendToRepeater }: RequestD
       .map(([key, value]) => `${key}: ${value}`)
       .join('\n');
     const body = record.request_body ? decodeBody(record.request_body) : '';
-    onSendToRepeater({ url: record.url, method: record.method, headers: headersText, body });
+    onSendToRepeater({
+      url: record.url,
+      method: record.method,
+      headers: headersText,
+      body,
+      originalResponse: {
+        status: record.status,
+        body: record.response_body,
+        contentType: record.content_type,
+      },
+    });
   }, [record, onSendToRepeater]);
 
   if (!record) return <div className="p-4 text-gray-500">Loading...</div>;

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { formatRequests, formatRequest, formatTailLine } from './format.js';
-import type { RequestRecord, PaginatedResponse } from '../shared/types.js';
+import { formatRequests, formatRequest, formatTailLine, formatReplayResponse, formatDiff } from './format.js';
+import type { RequestRecord, PaginatedResponse, ReplayResponse } from '../shared/types.js';
 
 function makeRequest(overrides: Partial<RequestRecord> = {}): RequestRecord {
   return {
@@ -113,5 +113,122 @@ describe('formatTailLine agent format', () => {
     const parsed = JSON.parse(output);
     expect(parsed).toHaveProperty('summary');
     expect(parsed.context).toHaveProperty('is_error');
+  });
+});
+
+// ── formatReplayResponse ──
+
+function makeReplayResponse(overrides: Partial<ReplayResponse> = {}): ReplayResponse {
+  return {
+    status: 200,
+    headers: { 'content-type': 'application/json' },
+    body: Buffer.from('{"ok":true}').toString('base64'),
+    duration: 50,
+    size: 11,
+    ...overrides,
+  };
+}
+
+describe('formatReplayResponse', () => {
+  it('outputs JSON with decoded body', () => {
+    const response = makeReplayResponse();
+    const output = formatReplayResponse(response, 'json');
+    const parsed = JSON.parse(output);
+    expect(parsed.status).toBe(200);
+    expect(parsed.body).toBe('{"ok":true}');
+  });
+
+  it('outputs table format with status and body', () => {
+    const response = makeReplayResponse({ status: 422 });
+    const output = formatReplayResponse(response, 'table');
+    expect(output).toContain('422');
+    expect(output).toContain('Response Body');
+  });
+});
+
+// ── formatDiff ──
+
+describe('formatDiff', () => {
+  it('classifies as improved when error becomes success', () => {
+    const original = makeRequest({ status: 422, response_body: Buffer.from('{"error":"bad"}') });
+    const replay = makeReplayResponse({ status: 200 });
+    const output = formatDiff(original, replay, 'json');
+    const parsed = JSON.parse(output);
+    expect(parsed.result).toBe('improved');
+    expect(parsed.changes.status).toBe('422 -> 200');
+    expect(parsed.changes.body_changed).toBe(true);
+  });
+
+  it('classifies as unchanged when same status', () => {
+    const body = Buffer.from('{"ok":true}');
+    const original = makeRequest({ status: 200, response_body: body });
+    const replay = makeReplayResponse({ status: 200, body: body.toString('base64') });
+    const output = formatDiff(original, replay, 'json');
+    const parsed = JSON.parse(output);
+    expect(parsed.result).toBe('unchanged');
+    expect(parsed.changes.status).toBeNull();
+    expect(parsed.changes.body_changed).toBe(false);
+  });
+
+  it('classifies as regressed when success becomes error', () => {
+    const original = makeRequest({ status: 200, response_body: Buffer.from('{"ok":true}') });
+    const replay = makeReplayResponse({ status: 500, body: Buffer.from('{"error":"server"}').toString('base64') });
+    const output = formatDiff(original, replay, 'json');
+    const parsed = JSON.parse(output);
+    expect(parsed.result).toBe('regressed');
+  });
+
+  it('handles null original body', () => {
+    const original = makeRequest({ status: 422, response_body: null, response_size: 0 });
+    const replay = makeReplayResponse({ status: 200 });
+    const output = formatDiff(original, replay, 'json');
+    const parsed = JSON.parse(output);
+    expect(parsed.result).toBe('improved');
+    expect(parsed.changes.body_changed).toBe(true);
+  });
+
+  it('handles non-JSON bodies in table format', () => {
+    const original = makeRequest({
+      status: 422,
+      response_body: Buffer.from('plain text error'),
+      content_type: 'text/plain',
+    });
+    const replay = makeReplayResponse({
+      status: 200,
+      body: Buffer.from('plain text ok').toString('base64'),
+    });
+    const output = formatDiff(original, replay, 'table');
+    expect(output).toContain('CHANGED');
+    expect(output).toContain('IMPROVED');
+  });
+
+  it('includes truncation warning when body was truncated', () => {
+    const original = makeRequest({ status: 422, truncated: 1 });
+    const replay = makeReplayResponse({ status: 200 });
+    const jsonOutput = formatDiff(original, replay, 'json');
+    const parsed = JSON.parse(jsonOutput);
+    expect(parsed.warning).toContain('truncated');
+
+    const tableOutput = formatDiff(original, replay, 'table');
+    expect(tableOutput).toContain('WARNING');
+  });
+
+  it('outputs agent format with summary', () => {
+    const original = makeRequest({
+      status: 422,
+      method: 'POST',
+      url: 'http://api.test/webhook',
+      response_body: Buffer.from('{"error":"bad"}'),
+    });
+    const replay = makeReplayResponse({ status: 200 });
+    const output = formatDiff(original, replay, 'agent');
+    const parsed = JSON.parse(output);
+    expect(parsed.summary).toContain('POST');
+    expect(parsed.summary).toContain('422');
+    expect(parsed.summary).toContain('200');
+    expect(parsed.summary).toContain('improved');
+    expect(parsed.result).toBe('improved');
+    expect(parsed.status_changed).toBe(true);
+    expect(parsed.body_changed).toBe(true);
   });
 });

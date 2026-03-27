@@ -2,10 +2,17 @@ import { useState, useCallback, useEffect } from 'react';
 import { replayRequest } from '../api.ts';
 import type { ReplayResponse } from '../api.ts';
 
+export interface OriginalResponseData {
+  status: number | null;
+  body: string | null;
+  contentType: string | null;
+}
+
 export interface RepeaterTabData {
   id: string;
   name: string;
   request: { url: string; method: string; headers: string; body: string };
+  originalResponse: OriginalResponseData | null;
   response: ReplayResponse | null;
   error: string | null;
   loading: boolean;
@@ -22,7 +29,13 @@ const METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'];
 
 let tabCounter = 0;
 
-export function createTab(init?: { url: string; method: string; headers: string; body: string }): RepeaterTabData {
+export function createTab(init?: {
+  url: string;
+  method: string;
+  headers: string;
+  body: string;
+  originalResponse?: OriginalResponseData;
+}): RepeaterTabData {
   tabCounter++;
   let name = `New Request ${tabCounter}`;
   if (init) {
@@ -31,7 +44,8 @@ export function createTab(init?: { url: string; method: string; headers: string;
   return {
     id: crypto.randomUUID(),
     name,
-    request: init || { url: '', method: 'GET', headers: '', body: '' },
+    request: init ? { url: init.url, method: init.method, headers: init.headers, body: init.body } : { url: '', method: 'GET', headers: '', body: '' },
+    originalResponse: init?.originalResponse ?? null,
     response: null,
     error: null,
     loading: false,
@@ -207,7 +221,7 @@ export function Repeater({ tabs, activeTabId, onTabsChange, onActiveTabChange }:
               </div>
             )}
             {activeTab.response && !activeTab.loading && (
-              <ResponseView response={activeTab.response} />
+              <ResponseView response={activeTab.response} originalResponse={activeTab.originalResponse} />
             )}
             {!activeTab.response && !activeTab.loading && !activeTab.error && (
               <div className="flex items-center justify-center h-full text-gray-600">
@@ -221,10 +235,29 @@ export function Repeater({ tabs, activeTabId, onTabsChange, onActiveTabChange }:
   );
 }
 
-function ResponseView({ response }: { response: ReplayResponse }) {
+function classifyDiffResult(origStatus: number | null, replayStatus: number): string {
+  if (origStatus === replayStatus) return 'unchanged';
+  const origError = origStatus != null && origStatus >= 400;
+  const replayError = replayStatus >= 400;
+  if (origError && !replayError) return 'improved';
+  if (!origError && replayError) return 'regressed';
+  return 'changed';
+}
+
+const diffResultStyles: Record<string, { label: string; color: string }> = {
+  improved: { label: 'IMPROVED', color: 'text-green-400' },
+  regressed: { label: 'REGRESSED', color: 'text-red-400' },
+  changed: { label: 'CHANGED', color: 'text-yellow-400' },
+  unchanged: { label: 'UNCHANGED', color: 'text-gray-500' },
+};
+
+function ResponseView({ response, originalResponse }: { response: ReplayResponse; originalResponse: OriginalResponseData | null }) {
   const statusColor = response.status < 300 ? 'text-green-400' :
     response.status < 400 ? 'text-yellow-400' :
     response.status < 500 ? 'text-orange-400' : 'text-red-400';
+
+  const diffResult = originalResponse ? classifyDiffResult(originalResponse.status, response.status) : null;
+  const diffStyle = diffResult ? diffResultStyles[diffResult] : null;
 
   return (
     <div className="flex flex-col h-full">
@@ -232,7 +265,46 @@ function ResponseView({ response }: { response: ReplayResponse }) {
         <span className={`font-mono font-bold ${statusColor}`}>{response.status}</span>
         <span>Duration: {response.duration}ms</span>
         <span>Size: {response.size}B</span>
+        {diffStyle && (
+          <span className={`font-bold ${diffStyle.color}`}>{diffStyle.label}</span>
+        )}
       </div>
+
+      {/* Diff section */}
+      {originalResponse && (
+        <div className="px-3 py-2 border-b border-gray-800 bg-gray-950">
+          <h3 className="text-xs font-semibold text-gray-500 uppercase mb-2">Diff vs. Original</h3>
+          <div className="font-mono text-xs space-y-1">
+            <div>
+              <span className="text-gray-500">status: </span>
+              {originalResponse.status !== response.status ? (
+                <>
+                  <span className="text-red-400">{originalResponse.status ?? '?'}</span>
+                  <span className="text-gray-600"> → </span>
+                  <span className={statusColor}>{response.status}</span>
+                  <span className="text-yellow-400 ml-2">[CHANGED]</span>
+                </>
+              ) : (
+                <>
+                  <span className={statusColor}>{response.status}</span>
+                  <span className="text-gray-600 ml-2">[unchanged]</span>
+                </>
+              )}
+            </div>
+            <div>
+              <span className="text-gray-500">body: </span>
+              {(() => {
+                const origBody = originalResponse.body ? formatResponseBody(originalResponse.body) : '';
+                const replayBody = formatResponseBody(response.body);
+                return origBody !== replayBody
+                  ? <span className="text-yellow-400">[CHANGED]</span>
+                  : <span className="text-gray-600">[unchanged]</span>;
+              })()}
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex-1 overflow-auto p-3">
         <div className="mb-4">
           <h3 className="text-xs font-semibold text-gray-500 uppercase mb-2">Headers</h3>

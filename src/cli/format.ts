@@ -1,5 +1,5 @@
 import pc from 'picocolors';
-import type { RequestRecord, PaginatedResponse } from '../shared/types.js';
+import type { RequestRecord, PaginatedResponse, ReplayResponse } from '../shared/types.js';
 
 // ── Shared column widths ──
 
@@ -262,4 +262,140 @@ function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes}B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)}KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
+}
+
+// ── Replay response formatter (moved from cli/commands/replay.ts) ──
+
+export function formatReplayResponse(response: ReplayResponse, format: string): string {
+  if (format === 'json') {
+    return JSON.stringify({
+      ...response,
+      body: Buffer.from(response.body, 'base64').toString('utf-8'),
+    }, null, 2);
+  }
+
+  const lines: string[] = [
+    '',
+    `  ${pc.dim('Status')}    ${response.status < 400 ? pc.green(String(response.status)) : pc.red(String(response.status))}`,
+    `  ${pc.dim('Duration')}  ${response.duration}ms`,
+    `  ${pc.dim('Size')}      ${response.size}B`,
+    '',
+    `  ${pc.bold('Response Headers')}`,
+  ];
+
+  for (const [key, value] of Object.entries(response.headers)) {
+    const vals = Array.isArray(value) ? value : [value];
+    for (const v of vals) {
+      lines.push(`  ${pc.magenta(key)}${pc.dim(':')} ${v}`);
+    }
+  }
+
+  const bodyStr = Buffer.from(response.body, 'base64').toString('utf-8');
+  if (bodyStr) {
+    lines.push('', `  ${pc.bold('Response Body')}`);
+    let formatted = bodyStr;
+    try { formatted = JSON.stringify(JSON.parse(bodyStr), null, 2); } catch {}
+    lines.push(...formatted.split('\n').map(line => `  ${line}`));
+  }
+
+  lines.push('');
+  return lines.join('\n');
+}
+
+// ── Diff formatter ──
+
+type DiffResult = 'improved' | 'regressed' | 'changed' | 'unchanged';
+
+function classifyDiff(originalStatus: number | null, replayStatus: number): DiffResult {
+  if (originalStatus === replayStatus) return 'unchanged';
+  const origError = originalStatus != null && originalStatus >= 400;
+  const replayError = replayStatus >= 400;
+  if (origError && !replayError) return 'improved';
+  if (!origError && replayError) return 'regressed';
+  return 'changed';
+}
+
+function decodeReplayBody(base64Body: string): string {
+  return Buffer.from(base64Body, 'base64').toString('utf-8');
+}
+
+export function formatDiff(original: RequestRecord, replayResponse: ReplayResponse, format: string): string {
+  const result = classifyDiff(original.status, replayResponse.status);
+  const origBodyStr = decodeBody(original.response_body, original.content_type, original.response_size);
+  const replayBodyStr = decodeReplayBody(replayResponse.body);
+  const bodyChanged = origBodyStr !== replayBodyStr;
+  const statusChanged = original.status !== replayResponse.status;
+  const truncatedWarning = original.truncated === 1;
+
+  if (format === 'json') {
+    return JSON.stringify({
+      original: { status: original.status, body: origBodyStr },
+      replay: { status: replayResponse.status, body: replayBodyStr },
+      changes: {
+        status: statusChanged ? `${original.status} -> ${replayResponse.status}` : null,
+        body_changed: bodyChanged,
+      },
+      result,
+      ...(truncatedWarning ? { warning: 'Original body was truncated at capture time. Diff may not be accurate.' } : {}),
+    }, null, 2);
+  }
+
+  if (format === 'agent') {
+    return JSON.stringify({
+      summary: `${original.method} ${original.url}: ${original.status} -> ${replayResponse.status} (${result})`,
+      original_status: original.status,
+      replay_status: replayResponse.status,
+      status_changed: statusChanged,
+      body_changed: bodyChanged,
+      result,
+      original_body_decoded: origBodyStr,
+      replay_body_decoded: replayBodyStr,
+      ...(truncatedWarning ? { warning: 'Original body was truncated at capture time. Diff may not be accurate.' } : {}),
+    }, null, 2);
+  }
+
+  // Table/default format
+  const lines: string[] = [''];
+
+  if (truncatedWarning) {
+    lines.push(`  ${pc.yellow('WARNING:')} Original body was truncated at capture time. Diff may not be accurate.`);
+    lines.push('');
+  }
+
+  lines.push(`  ${pc.bold('DIFF:')} ${original.method} ${original.url}`);
+
+  // Status
+  const origStatusStr = `${original.status ?? '?'} ${original.status ? httpStatusText(original.status) : ''}`.trim();
+  const replayStatusStr = `${replayResponse.status} ${httpStatusText(replayResponse.status)}`.trim();
+  if (statusChanged) {
+    lines.push(`  ${pc.dim('status:')}  ${statusColor(original.status)} ${pc.dim('->')} ${statusColor(replayResponse.status)}  ${pc.yellow('[CHANGED]')}`);
+  } else {
+    lines.push(`  ${pc.dim('status:')}  ${statusColor(original.status)}  ${pc.dim('[unchanged]')}`);
+  }
+
+  // Body
+  if (bodyChanged) {
+    lines.push(`  ${pc.dim('body:')}    ${pc.yellow('[CHANGED]')}`);
+  } else {
+    lines.push(`  ${pc.dim('body:')}    ${pc.dim('[unchanged]')}`);
+  }
+
+  // Timing
+  if (original.duration != null) {
+    lines.push(`  ${pc.dim('timing:')}  ${original.duration}ms ${pc.dim('->')} ${replayResponse.duration}ms`);
+  }
+
+  lines.push('');
+
+  // Result
+  const resultLabels: Record<DiffResult, string> = {
+    improved: pc.green('IMPROVED') + ' (status changed from error to success)',
+    regressed: pc.red('REGRESSED') + ' (status changed from success to error)',
+    changed: pc.yellow('CHANGED') + ' (status changed)',
+    unchanged: pc.dim('UNCHANGED') + ' (same status code)',
+  };
+  lines.push(`  ${pc.bold('RESULT:')} ${resultLabels[result]}`);
+  lines.push('');
+
+  return lines.join('\n');
 }

@@ -57,7 +57,7 @@ export function App() {
     setFilterSearch('');
   }, []);
 
-  const handleSendToRepeater = useCallback((data: { url: string; method: string; headers: string; body: string }) => {
+  const handleSendToRepeater = useCallback((data: { url: string; method: string; headers: string; body: string; originalResponse?: { status: number | null; body: string | null; contentType: string | null } }) => {
     const tab = createTab(data);
     setRepeaterTabs((prev) => [...prev, tab]);
     setActiveRepeaterTab(tab.id);
