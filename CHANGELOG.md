@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.1.8](https://github.com/rvanbaalen/roxyproxy/compare/roxyproxy-v0.1.7...roxyproxy-v0.1.8) (2026-03-28)
+
+
+### Features
+
+* **demo:** add terminal recording with simulated Claude Code UI ([095c208](https://github.com/rvanbaalen/roxyproxy/commit/095c2082a20c9cf0f3823b408d6b8ee9fbc558fd))
+* **demo:** polished recording with colored agent UI ([da5a5e5](https://github.com/rvanbaalen/roxyproxy/commit/da5a5e554e208d76ab01f90538f9a8d81c79db68))
+* **demo:** slow down pacing between scenes ([5391b16](https://github.com/rvanbaalen/roxyproxy/commit/5391b161a512280253d2a613baf3739a6f96d476))
+* **replay:** add --diff flag to compare original vs replay response ([bc9620c](https://github.com/rvanbaalen/roxyproxy/commit/bc9620c622fc84c2e5631c64373301e28c9cb4c8))
+* **server:** add system proxy GET/POST API endpoints ([750d0da](https://github.com/rvanbaalen/roxyproxy/commit/750d0dae0e14a25f6b99da70d2726670437a5fc3))
+* **ui:** add design system foundation — tokens, fonts, scrollbars, animations ([8fc16da](https://github.com/rvanbaalen/roxyproxy/commit/8fc16da2f91a9c0fe4ee1259ab232d321e2102c3))
+* **ui:** full visual redesign — unified workspace, design tokens, transitions ([9720df0](https://github.com/rvanbaalen/roxyproxy/commit/9720df0577945a805664836ebb902ed157b76df9))
+
 ## [0.1.7](https://github.com/rvanbaalen/roxyproxy/compare/roxyproxy-v0.1.6...roxyproxy-v0.1.7) (2026-03-27)
 
 
