@@ -15,7 +15,7 @@ function run(cmd: string, args: string[]): Promise<{ code: number; stdout: strin
 
 export interface PortProcess {
   pid: number;
-  isLaurel Proxy: boolean;
+  isLaurelProxy: boolean;
 }
 
 /**
@@ -29,8 +29,8 @@ export async function getProcessOnPort(port: number): Promise<PortProcess | null
   if (isNaN(pid)) return null;
 
   const ps = await run('ps', ['-p', String(pid), '-o', 'command=']);
-  const isLaurel Proxy = ps.stdout.includes('laurel-proxy');
-  return { pid, isLaurel Proxy };
+  const isLaurelProxy = ps.stdout.includes('laurel-proxy');
+  return { pid, isLaurelProxy };
 }
 
 /**
@@ -105,7 +105,7 @@ export async function findExistingInstances(proxyPort: number, uiPort: number): 
   // Check configured ports
   for (const port of new Set([proxyPort, uiPort])) {
     const proc = await getProcessOnPort(port);
-    if (proc?.isLaurel Proxy && proc.pid !== process.pid) {
+    if (proc?.isLaurelProxy && proc.pid !== process.pid) {
       if (instances.has(proc.pid)) {
         instances.get(proc.pid)!.ports.push(port);
       } else {
@@ -176,7 +176,7 @@ export function listenWithRetry(
         // First attempt on the original port — check if it's another laurel-proxy
         if (p === port && !killedPrevious) {
           const proc = await getProcessOnPort(p);
-          if (proc?.isLaurel Proxy) {
+          if (proc?.isLaurelProxy) {
             const shutdown = await shutdownViaApi(p);
             if (shutdown) {
               const freed = await waitForPortFree(p);
