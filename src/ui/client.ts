@@ -65,6 +65,22 @@ export async function stopProxy(): Promise<void> {
   await fetch(`${API_BASE}/proxy/stop`, { method: 'POST' });
 }
 
+export async function fetchSystemProxyStatus(): Promise<boolean> {
+  const res = await fetch(`${API_BASE}/system-proxy`);
+  const data = await res.json();
+  return data.enabled;
+}
+
+export async function enableSystemProxy(): Promise<{ ok: boolean; message: string }> {
+  const res = await fetch(`${API_BASE}/system-proxy/enable`, { method: 'POST' });
+  return res.json();
+}
+
+export async function disableSystemProxy(): Promise<{ ok: boolean; message: string }> {
+  const res = await fetch(`${API_BASE}/system-proxy/disable`, { method: 'POST' });
+  return res.json();
+}
+
 export interface ReplayRequest {
   url: string;
   method: string;
