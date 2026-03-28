@@ -1,8 +1,94 @@
 @import "tailwindcss";
 
+@theme {
+  /* Surfaces */
+  --color-bg-primary: #0a0a0a;
+  --color-bg-secondary: #1a1a1a;
+  --color-bg-tertiary: #2a2a2a;
+
+  /* Text */
+  --color-text-primary: #fafafa;
+  --color-text-secondary: #a0a0a0;
+  --color-text-muted: #666;
+
+  /* Accent — green only */
+  --color-accent: #22c55e;
+  --color-accent-dim: #16a34a;
+
+  /* Borders */
+  --color-border: #333;
+  --color-border-subtle: #222;
+
+  /* Typography */
+  --font-mono: "JetBrains Mono", "Fira Code", "SF Mono", ui-monospace, monospace;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+
+  /* Easing */
+  --ease-bounce: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body {
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-secondary);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+
+*:hover {
+  scrollbar-color: var(--color-text-muted) transparent;
+}
+
+/* Inspector panel slide transition */
+.detail-panel {
+  transition: width 200ms var(--ease-smooth), opacity 150ms var(--ease-smooth);
+  overflow: hidden;
+}
+
+.detail-panel[data-dragging="true"] {
+  transition: none;
+}
+
+.detail-panel[data-open="false"] {
+  width: 0 !important;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.detail-panel[data-open="true"] {
+  opacity: 1;
+}
+
 /* Override inline panel width on mobile so the detail overlay fills the screen */
 @media (width < 48rem) {
-  .detail-panel {
+  .detail-panel[data-open="true"] {
     width: auto !important;
   }
+}
+
+/* Active press effect for buttons */
+button:active:not(:disabled),
+a:active {
+  transform: scale(0.97);
+}
+
+/* Tab underline transition */
+.tab-underline {
+  transition: color 150ms, border-color 150ms;
+}
+
+/* Pulsing status dot animation */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.animate-pulse-dot {
+  animation: pulse-dot 2s ease-in-out infinite;
 }
