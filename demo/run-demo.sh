@@ -1,5 +1,5 @@
 #!/bin/bash
-# RoxyProxy Demo — polished asciinema recording
+# Laurel Proxy Demo — polished asciinema recording
 # Emulated CLI + simulated AI agent interaction
 
 # --- Colors ---
@@ -90,14 +90,14 @@ print_agent_output() {
 }
 
 # ============================================================
-# SCENE 1: Start roxyproxy
+# SCENE 1: Start laurel-proxy
 # ============================================================
 clear
 echo ""
 sleep 1
 
 shell_prompt
-type_text "roxyproxy start" 0.06
+type_text "laurel-proxy start" 0.06
 sleep 0.5
 echo ""
 echo ""
@@ -126,7 +126,7 @@ sleep 0.8
 
 printf "  ${GREEN}✔${RESET} CA certificate installed and trusted\n"
 sleep 0.7
-printf "  ${GREEN}✔${RESET} System proxy enabled ${DIM}(all traffic routed through RoxyProxy)${RESET}\n"
+printf "  ${GREEN}✔${RESET} System proxy enabled ${DIM}(all traffic routed through Laurel Proxy)${RESET}\n"
 sleep 0.7
 echo ""
 printf "  ${DIM}Capturing traffic... press Ctrl+C to stop${RESET}\n"
@@ -142,7 +142,7 @@ type_text "ai-agent" 0.06
 sleep 0.4
 echo ""
 echo ""
-printf "  ${GREEN}●${RESET} AI coding agent connected ${DIM}(roxyproxy plugin loaded)${RESET}\n"
+printf "  ${GREEN}●${RESET} AI coding agent connected ${DIM}(laurel-proxy plugin loaded)${RESET}\n"
 sleep 2.5
 
 # ============================================================
@@ -161,7 +161,7 @@ echo ""
 agent_say "Let me check the captured traffic for failing requests."
 sleep 0.8
 
-agent_tool "Bash" "roxyproxy requests --failed --format agent"
+agent_tool "Bash" "laurel-proxy requests --failed --format agent"
 
 print_agent_output
 sleep 3.5

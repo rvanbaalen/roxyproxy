@@ -1,4 +1,4 @@
-{"version":3,"term":{"cols":80,"rows":24},"timestamp":1774639364,"command":"bash /tmp/run-demo-edit.sh","title":"RoxyProxy — The HTTP proxy your AI agent can use","env":{"SHELL":"/bin/zsh"}}
+{"version":3,"term":{"cols":80,"rows":24},"timestamp":1774639364,"command":"bash /tmp/run-demo-edit.sh","title":"Laurel Proxy — The HTTP proxy your AI agent can use","env":{"SHELL":"/bin/zsh"}}
 [0.011, "o", "\u001b[3J\u001b[H\u001b[2J"]
 [0.000, "o", "\r\n"]
 [1.005, "o", "\u001b[1;32m❯ \u001b[0m"]
@@ -27,7 +27,7 @@
 [0.207, "o", "  \u001b[1;32m●\u001b[0m Web UI   \u001b[1;36mhttp://127.0.0.1:8081\u001b[0m\r\n"]
 [0.209, "o", "  \u001b[1;32m●\u001b[0m Network  \u001b[1;36mhttp://192.168.1.42:8081\u001b[0m\r\n\r\n"]
 [0.806, "o", "  \u001b[1;32m✔\u001b[0m CA certificate installed and trusted\r\n"]
-[0.706, "o", "  \u001b[1;32m✔\u001b[0m System proxy enabled \u001b[2m(all traffic routed through RoxyProxy)\u001b[0m\r\n"]
+[0.706, "o", "  \u001b[1;32m✔\u001b[0m System proxy enabled \u001b[2m(all traffic routed through Laurel Proxy)\u001b[0m\r\n"]
 [0.710, "o", "\r\n"]
 [0.000, "o", "  \u001b[2mCapturing traffic... press Ctrl+C to stop\u001b[0m\r\n"]
 [3.005, "o", "\r\n\r\n\u001b[1;32m❯ \u001b[0m"]
@@ -40,7 +40,7 @@
 [0.065, "o", "n"]
 [0.067, "o", "t"]
 [0.478, "o", "\r\n\r\n"]
-[0.000, "o", "  \u001b[1;32m●\u001b[0m AI coding agent connected \u001b[2m(roxyproxy plugin loaded)\u001b[0m\r\n"]
+[0.000, "o", "  \u001b[1;32m●\u001b[0m AI coding agent connected \u001b[2m(laurel-proxy plugin loaded)\u001b[0m\r\n"]
 [2.509, "o", "\r\n\u001b[1;35mYou: \u001b[0m"]
 [0.508, "o", "S"]
 [0.040, "o", "o"]
@@ -209,7 +209,7 @@
 [0.076, "o", "\r\n"]
 [0.807, "o", "\r\n"]
 [0.000, "o", "  \u001b[2m┌─ \u001b[1;33m⚡ Tool: \u001b[0m\u001b[1;37mBash\u001b[0m\r\n"]
-[0.000, "o", "  \u001b[2m│\u001b[0m  \u001b[1;36mroxyproxy requests --failed --format agent\u001b[0m\r\n  \u001b[2m└──────\u001b[0m\r\n"]
+[0.000, "o", "  \u001b[2m│\u001b[0m  \u001b[1;36mlaurel-proxy requests --failed --format agent\u001b[0m\r\n  \u001b[2m└──────\u001b[0m\r\n"]
 [0.807, "o", "\r\n  \u001b[2m│\u001b[0m\r\n"]
 [0.156, "o", "  \u001b[2m│\u001b[0m  \u001b[1;37m\u001b[1mPOST\u001b[0m \u001b[1;34mhttps://api.example.com/webhooks\u001b[0m \u001b[1;31m→ 422\u001b[0m \u001b[2m(218ms)\u001b[0m\r\n"]
 [0.155, "o", "  \u001b[2m│\u001b[0m\r\n  \u001b[2m│\u001b[0m  \u001b[1;33mRequest\u001b[0m\r\n"]

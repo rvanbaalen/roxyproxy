@@ -41,8 +41,8 @@ export class CertificateAuthority {
     cert.validity.notAfter.setFullYear(cert.validity.notBefore.getFullYear() + 10);
 
     const attrs = [
-      { name: 'commonName', value: 'RoxyProxy CA' },
-      { name: 'organizationName', value: 'RoxyProxy' },
+      { name: 'commonName', value: 'Laurel Proxy CA' },
+      { name: 'organizationName', value: 'Laurel Proxy' },
     ];
     cert.setSubject(attrs);
     cert.setIssuer(attrs);

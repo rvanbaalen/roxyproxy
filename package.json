@@ -1,10 +1,10 @@
 {
-  "name": "@rvanbaalen/roxyproxy",
+  "name": "laurel-proxy",
   "version": "0.1.7",
   "description": "HTTP/HTTPS intercepting proxy with CLI and web UI",
   "type": "module",
   "bin": {
-    "roxyproxy": "./dist/cli/index.js"
+    "laurel-proxy": "./dist/cli/index.js"
   },
   "files": [
     "dist"
@@ -20,7 +20,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/rvanbaalen/roxyproxy.git"
+    "url": "git+https://github.com/rvanbaalen/laurel-proxy.git"
   },
   "publishConfig": {
     "access": "public"

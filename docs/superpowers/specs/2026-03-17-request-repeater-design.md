@@ -2,7 +2,7 @@
 
 ## Overview
 
-Add a Repeater feature to RoxyProxy: view a captured request, edit any field (URL, method, headers, body), and send it again. The replayed response is ephemeral (not stored in the traffic DB). Supports multiple tabs, and is accessible via web UI, REST API, and CLI.
+Add a Repeater feature to Laurel Proxy: view a captured request, edit any field (URL, method, headers, body), and send it again. The replayed response is ephemeral (not stored in the traffic DB). Supports multiple tabs, and is accessible via web UI, REST API, and CLI.
 
 ## Architecture
 
@@ -117,7 +117,7 @@ POST /api/replay
 **New file:** `src/cli/commands/replay.ts`
 
 ```
-roxyproxy replay <id> [options]
+laurel-proxy replay <id> [options]
 ```
 
 Loads the request from DB by UUID, converts it using `recordToReplayRequest`, optionally overrides fields, sends it via the `replay()` function, and prints the response.

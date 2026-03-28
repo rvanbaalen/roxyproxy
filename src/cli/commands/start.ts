@@ -2,7 +2,7 @@ import type { Command } from 'commander';
 import pc from 'picocolors';
 import readline from 'node:readline';
 import { loadConfig } from '../../server/config.js';
-import { RoxyProxyServer } from '../../server/index.js';
+import { LaurelProxyServer } from '../../server/index.js';
 import { findExistingInstances, killInstance } from '../../server/port-utils.js';
 import { printBanner, printStartInfo, printWarn, printError, printSuccess } from '../banner.js';
 import { enableSystemProxy, disableSystemProxy, checkSystemProxyStatus } from '../system-proxy.js';
@@ -45,7 +45,7 @@ export function registerStart(program: Command): void {
       const existing = await findExistingInstances(config.proxyPort, config.uiPort);
       if (existing.length > 0) {
         for (const inst of existing) {
-          printWarn(`Existing RoxyProxy instance detected: ${formatInstance(inst)}`);
+          printWarn(`Existing Laurel Proxy instance detected: ${formatInstance(inst)}`);
         }
 
         const isTTY = process.stdin.isTTY;
@@ -70,11 +70,11 @@ export function registerStart(program: Command): void {
         console.log('');
       }
 
-      const pidPath = path.join(os.homedir(), '.roxyproxy', 'pid');
+      const pidPath = path.join(os.homedir(), '.laurel-proxy', 'pid');
       fs.mkdirSync(path.dirname(pidPath), { recursive: true });
       fs.writeFileSync(pidPath, process.pid.toString());
 
-      const server = new RoxyProxyServer(config);
+      const server = new LaurelProxyServer(config);
       const { proxyPort, uiPort } = await server.start();
 
       printStartInfo(proxyPort, uiPort);

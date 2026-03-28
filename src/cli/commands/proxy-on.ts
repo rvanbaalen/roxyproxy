@@ -5,7 +5,7 @@ import { printSuccess, printError } from '../banner.js';
 export function registerProxyOn(program: Command): void {
   program
     .command('proxy-on')
-    .description('Set RoxyProxy as system-wide proxy (macOS)')
+    .description('Set Laurel Proxy as system-wide proxy (macOS)')
     .option('--port <number>', 'Proxy port', '8080')
     .option('--service <name>', 'Network service name (default: auto-detect)')
     .action(async (opts) => {

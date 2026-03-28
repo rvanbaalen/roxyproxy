@@ -31,7 +31,7 @@ export interface Config {
 export const DEFAULT_CONFIG: Config = {
   proxyPort: 8080,
   uiPort: 8081,
-  dbPath: '~/.roxyproxy/data.db',
+  dbPath: '~/.laurel-proxy/data.db',
   maxAge: 7 * 24 * 60 * 60 * 1000,
   maxDbSize: 500 * 1024 * 1024,
   maxBodySize: 1 * 1024 * 1024,

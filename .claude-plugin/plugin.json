@@ -1,12 +1,12 @@
 {
-  "name": "roxyproxy",
+  "name": "laurel-proxy",
   "version": "1.0.0",
-  "description": "Claude Code skill for using RoxyProxy - HTTP/HTTPS intercepting proxy",
+  "description": "Claude Code skill for using Laurel Proxy - HTTP/HTTPS intercepting proxy",
   "author": {
     "name": "rvanbaalen",
     "url": "https://github.com/rvanbaalen"
   },
-  "repository": "https://github.com/rvanbaalen/roxyproxy",
+  "repository": "https://github.com/rvanbaalen/laurel-proxy",
   "license": "MIT",
   "keywords": ["proxy", "http", "https", "traffic", "debugging", "network"]
 }

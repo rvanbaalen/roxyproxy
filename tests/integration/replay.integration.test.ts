@@ -141,7 +141,7 @@ describe('recordToReplayRequest', () => {
   });
 });
 
-import { RoxyProxyServer } from '../../src/server/index.js';
+import { LaurelProxyServer } from '../../src/server/index.js';
 import { DEFAULT_CONFIG } from '../../src/shared/types.js';
 import type { Config } from '../../src/shared/types.js';
 import path from 'node:path';
@@ -152,7 +152,7 @@ import { randomUUID } from 'node:crypto';
 describe('POST /api/replay', () => {
   let targetServer: http.Server;
   let targetPort: number;
-  let proxy: RoxyProxyServer;
+  let proxy: LaurelProxyServer;
   let uiPort: number;
   let tmpDir: string;
 
@@ -172,10 +172,10 @@ describe('POST /api/replay', () => {
       });
     });
 
-    tmpDir = path.join(os.tmpdir(), `roxyproxy-replay-${randomUUID()}`);
+    tmpDir = path.join(os.tmpdir(), `laurel-proxy-replay-${randomUUID()}`);
     fs.mkdirSync(tmpDir, { recursive: true });
     const config: Config = { ...DEFAULT_CONFIG, proxyPort: 0, uiPort: 0, dbPath: path.join(tmpDir, 'data.db') };
-    proxy = new RoxyProxyServer(config);
+    proxy = new LaurelProxyServer(config);
     const ports = await proxy.start();
     uiPort = ports.uiPort;
   });

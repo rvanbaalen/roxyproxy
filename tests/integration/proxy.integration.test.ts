@@ -5,14 +5,14 @@ import path from 'node:path';
 import os from 'node:os';
 import fs from 'node:fs';
 import { randomUUID } from 'node:crypto';
-import { RoxyProxyServer } from '../../src/server/index.js';
+import { LaurelProxyServer } from '../../src/server/index.js';
 import { DEFAULT_CONFIG } from '../../src/shared/types.js';
 import type { Config } from '../../src/shared/types.js';
 
-describe('RoxyProxy Integration', () => {
+describe('Laurel Proxy Integration', () => {
   let targetServer: http.Server;
   let targetPort: number;
-  let proxy: RoxyProxyServer;
+  let proxy: LaurelProxyServer;
   let proxyPort: number;
   let uiPort: number;
   let tmpDir: string;
@@ -29,7 +29,7 @@ describe('RoxyProxy Integration', () => {
       });
     });
 
-    tmpDir = path.join(os.tmpdir(), `roxyproxy-integration-${randomUUID()}`);
+    tmpDir = path.join(os.tmpdir(), `laurel-proxy-integration-${randomUUID()}`);
     fs.mkdirSync(tmpDir, { recursive: true });
     const config: Config = {
       ...DEFAULT_CONFIG,
@@ -37,7 +37,7 @@ describe('RoxyProxy Integration', () => {
       uiPort: 0,
       dbPath: path.join(tmpDir, 'data.db'),
     };
-    proxy = new RoxyProxyServer(config);
+    proxy = new LaurelProxyServer(config);
     const ports = await proxy.start();
     proxyPort = ports.proxyPort;
     uiPort = ports.uiPort;

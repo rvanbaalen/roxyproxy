@@ -5,7 +5,7 @@ import type { RequestFilter, RequestRecord } from '../shared/types.js';
 import { loadConfig } from '../server/config.js';
 import { Database } from '../storage/db.js';
 import { COL } from './format.js';
-import type { RoxyProxyServer } from '../server/index.js';
+import type { LaurelProxyServer } from '../server/index.js';
 import { disableSystemProxy } from './system-proxy.js';
 
 // ── Colors ──
@@ -231,7 +231,7 @@ function DetailView({ record, onBack }: { record: RequestRecord; onBack: () => v
 
 // ── Main Tail App ──
 
-function TailApp({ port, filter, server, ownedSystemProxy }: { port: number; filter: RequestFilter; server: RoxyProxyServer | null; ownedSystemProxy: boolean }) {
+function TailApp({ port, filter, server, ownedSystemProxy }: { port: number; filter: RequestFilter; server: LaurelProxyServer | null; ownedSystemProxy: boolean }) {
   const { exit } = useApp();
   const { stdout } = useStdout();
   const [records, setRecords] = useState<RequestRecord[]>([]);
@@ -469,6 +469,6 @@ function TailApp({ port, filter, server, ownedSystemProxy }: { port: number; fil
   );
 }
 
-export function launchTailUi(port: number, filter: RequestFilter, server?: RoxyProxyServer | null, ownedSystemProxy = false): void {
+export function launchTailUi(port: number, filter: RequestFilter, server?: LaurelProxyServer | null, ownedSystemProxy = false): void {
   render(<TailApp port={port} filter={filter} server={server ?? null} ownedSystemProxy={ownedSystemProxy} />);
 }

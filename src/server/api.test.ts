@@ -54,7 +54,7 @@ describe('REST API', () => {
   let port: number;
 
   beforeEach(async () => {
-    dbPath = path.join(os.tmpdir(), `roxyproxy-api-test-${randomUUID()}.db`);
+    dbPath = path.join(os.tmpdir(), `laurel-proxy-api-test-${randomUUID()}.db`);
     db = new Database(dbPath);
     events = new EventManager();
     const app = express();

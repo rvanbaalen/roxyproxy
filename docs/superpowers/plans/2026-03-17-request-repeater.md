@@ -19,7 +19,7 @@
 | `src/shared/types.ts` | Add `ReplayRequest`, `ReplayResponse` interfaces |
 | `src/server/replay.ts` | **New** — `replay()` function + `recordToReplayRequest()` conversion |
 | `src/server/api.ts` | Add `POST /api/replay` route |
-| `src/cli/commands/replay.ts` | **New** — `roxyproxy replay <id>` CLI command |
+| `src/cli/commands/replay.ts` | **New** — `laurel-proxy replay <id>` CLI command |
 | `src/cli/index.ts` | Register replay command |
 | `src/ui/api.ts` | Add `replayRequest()` fetch function |
 | `src/ui/components/RequestDetail.tsx` | Add "Repeater" button |
@@ -361,7 +361,7 @@ git commit -m "feat: add replay module for resending HTTP requests"
 Append to `tests/integration/replay.integration.test.ts`:
 
 ```typescript
-import { RoxyProxyServer } from '../../src/server/index.js';
+import { LaurelProxyServer } from '../../src/server/index.js';
 import { DEFAULT_CONFIG } from '../../src/shared/types.js';
 import type { Config } from '../../src/shared/types.js';
 import path from 'node:path';
@@ -372,7 +372,7 @@ import { randomUUID } from 'node:crypto';
 describe('POST /api/replay', () => {
   let targetServer: http.Server;
   let targetPort: number;
-  let proxy: RoxyProxyServer;
+  let proxy: LaurelProxyServer;
   let uiPort: number;
   let tmpDir: string;
 
@@ -392,10 +392,10 @@ describe('POST /api/replay', () => {
       });
     });
 
-    tmpDir = path.join(os.tmpdir(), `roxyproxy-replay-${randomUUID()}`);
+    tmpDir = path.join(os.tmpdir(), `laurel-proxy-replay-${randomUUID()}`);
     fs.mkdirSync(tmpDir, { recursive: true });
     const config: Config = { ...DEFAULT_CONFIG, proxyPort: 0, uiPort: 0, dbPath: path.join(tmpDir, 'data.db') };
-    proxy = new RoxyProxyServer(config);
+    proxy = new LaurelProxyServer(config);
     const ports = await proxy.start();
     uiPort = ports.uiPort;
   });
@@ -647,7 +647,7 @@ Expected: No errors
 
 ```bash
 git add src/cli/commands/replay.ts src/cli/index.ts
-git commit -m "feat: add roxyproxy replay CLI command"
+git commit -m "feat: add laurel-proxy replay CLI command"
 ```
 
 ---
@@ -1233,7 +1233,7 @@ Expected: Both server and UI build succeed
 
 - [ ] **Step 3: Smoke test the full flow**
 
-1. Start RoxyProxy: `node dist/cli/index.js start`
+1. Start Laurel Proxy: `node dist/cli/index.js start`
 2. Open `http://127.0.0.1:8081` — verify Traffic and Repeater tabs visible
 3. Make a proxied request: `curl -x http://127.0.0.1:8080 http://httpbin.org/get`
 4. Click on the captured request, click "Repeater" button

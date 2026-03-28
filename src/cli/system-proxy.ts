@@ -88,7 +88,7 @@ export interface CaStatus {
 }
 
 export async function checkCaStatus(): Promise<CaStatus> {
-  const certPath = `${os.homedir()}/.roxyproxy/ca/ca.crt`;
+  const certPath = `${os.homedir()}/.laurel-proxy/ca/ca.crt`;
   const { existsSync } = await import('node:fs');
 
   if (!existsSync(certPath)) {
@@ -102,7 +102,7 @@ export async function checkCaStatus(): Promise<CaStatus> {
 
   if (os.platform() === 'linux') {
     const { existsSync: exists2 } = await import('node:fs');
-    const trusted = exists2('/usr/local/share/ca-certificates/roxyproxy.crt');
+    const trusted = exists2('/usr/local/share/ca-certificates/laurel-proxy.crt');
     return { exists: true, trusted, certPath };
   }
 
@@ -111,7 +111,7 @@ export async function checkCaStatus(): Promise<CaStatus> {
 
 export async function installCaCert(): Promise<ProxyResult> {
   const fs = await import('node:fs');
-  const certPath = `${os.homedir()}/.roxyproxy/ca/ca.crt`;
+  const certPath = `${os.homedir()}/.laurel-proxy/ca/ca.crt`;
   if (!fs.existsSync(certPath)) {
     return { ok: false, message: 'CA certificate not found. Start the proxy first.' };
   }
@@ -130,7 +130,7 @@ export async function installCaCert(): Promise<ProxyResult> {
   }
 
   if (os.platform() === 'linux') {
-    const copy = await run('sudo', ['cp', certPath, '/usr/local/share/ca-certificates/roxyproxy.crt']);
+    const copy = await run('sudo', ['cp', certPath, '/usr/local/share/ca-certificates/laurel-proxy.crt']);
     if (copy.code !== 0) return { ok: false, message: 'Failed to copy certificate.' };
     const update = await run('sudo', ['update-ca-certificates']);
     if (update.code === 0) {
@@ -143,7 +143,7 @@ export async function installCaCert(): Promise<ProxyResult> {
 }
 
 export async function uninstallCaCert(): Promise<ProxyResult> {
-  const certPath = `${os.homedir()}/.roxyproxy/ca/ca.crt`;
+  const certPath = `${os.homedir()}/.laurel-proxy/ca/ca.crt`;
   const fs = await import('node:fs');
   if (!fs.existsSync(certPath)) {
     return { ok: false, message: 'CA certificate not found. Nothing to remove.' };
@@ -162,7 +162,7 @@ export async function uninstallCaCert(): Promise<ProxyResult> {
   }
 
   if (os.platform() === 'linux') {
-    const targetPath = '/usr/local/share/ca-certificates/roxyproxy.crt';
+    const targetPath = '/usr/local/share/ca-certificates/laurel-proxy.crt';
     if (!fs.existsSync(targetPath)) {
       return { ok: true, message: 'Certificate is not currently installed.' };
     }

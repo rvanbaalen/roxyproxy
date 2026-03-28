@@ -1,11 +1,11 @@
-# RoxyProxy
+# Laurel Proxy
 
 HTTP/HTTPS intercepting proxy with CLI, web UI, REST API, and Claude Code plugin. Captures traffic in SQLite and makes it queryable.
 
 ## Project Structure
 
 - `main` branch: proxy source code, CLI, server, web UI, tests
-- `website` branch: Astro landing page + docs site, deployed to GitHub Pages at robinvanbaalen.nl/roxyproxy/
+- `website` branch: Astro landing page + docs site, deployed to GitHub Pages at robinvanbaalen.nl/laurel-proxy/
 
 ## Development
 
@@ -26,8 +26,8 @@ Terminal demos use asciinema. The setup is reusable for future feature demos.
 
 - `demo/run-demo.sh` — the scripted demo (emulated CLI + simulated AI agent UI)
 - `demo/record.sh` — wrapper that records with asciinema and generates a GIF
-- `demo/roxyproxy-demo.cast` — the asciinema recording (text-based, 11KB)
-- `demo/roxyproxy-demo.gif` — animated GIF for the GitHub README
+- `demo/laurel-proxy-demo.cast` — the asciinema recording (text-based, 11KB)
+- `demo/laurel-proxy-demo.gif` — animated GIF for the GitHub README
 
 The website (`website` branch) embeds the `.cast` file via asciinema-player in the hero section (`src/components/DemoPlayer.astro`). The cast file is served from `public/demo.cast`.
 
@@ -39,7 +39,7 @@ brew install asciinema agg       # if not installed
 bash demo/record.sh              # records + generates GIF
 ```
 
-Then copy the cast to the website branch: `git show main:demo/roxyproxy-demo.cast > public/demo.cast`
+Then copy the cast to the website branch: `git show main:demo/laurel-proxy-demo.cast > public/demo.cast`
 
 ### Creating additional feature demos
 

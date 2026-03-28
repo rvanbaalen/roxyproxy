@@ -31,7 +31,7 @@ export function registerTrustCa(program: Command): void {
     .description('Install and trust the CA certificate')
     .option('--no-interactive', 'Just print the cert path and instructions')
     .action(async (opts) => {
-      const certPath = path.join(os.homedir(), '.roxyproxy', 'ca', 'ca.crt');
+      const certPath = path.join(os.homedir(), '.laurel-proxy', 'ca', 'ca.crt');
 
       if (!fs.existsSync(certPath)) {
         printError('CA certificate not found. Start the proxy first to generate it.');
@@ -61,7 +61,7 @@ export function registerTrustCa(program: Command): void {
 }
 
 async function installMacOS(certPath: string): Promise<void> {
-  console.log(`  This will add the RoxyProxy CA to your macOS system keychain.`);
+  console.log(`  This will add the Laurel Proxy CA to your macOS system keychain.`);
   console.log(`  You'll be prompted for your ${pc.bold('sudo password')}.`);
   console.log('');
 
@@ -98,7 +98,7 @@ async function installMacOS(certPath: string): Promise<void> {
 }
 
 async function installLinux(certPath: string): Promise<void> {
-  console.log(`  This will copy the RoxyProxy CA to your system certificate store.`);
+  console.log(`  This will copy the Laurel Proxy CA to your system certificate store.`);
   console.log(`  You'll be prompted for your ${pc.bold('sudo password')}.`);
   console.log('');
 
@@ -113,7 +113,7 @@ async function installLinux(certPath: string): Promise<void> {
   printInfo('Installing certificate...');
 
   const copyResult = await run('sudo', [
-    'cp', certPath, '/usr/local/share/ca-certificates/roxyproxy.crt',
+    'cp', certPath, '/usr/local/share/ca-certificates/laurel-proxy.crt',
   ]);
 
   if (copyResult.code !== 0) {
@@ -138,7 +138,7 @@ function printManualInstructions(certPath: string, platform: string): void {
     console.log(pc.cyan(`  sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain "${certPath}"`));
   } else {
     console.log(`  ${pc.bold('Linux (Debian/Ubuntu):')}`);
-    console.log(pc.cyan(`  sudo cp "${certPath}" /usr/local/share/ca-certificates/roxyproxy.crt`));
+    console.log(pc.cyan(`  sudo cp "${certPath}" /usr/local/share/ca-certificates/laurel-proxy.crt`));
     console.log(pc.cyan(`  sudo update-ca-certificates`));
   }
   console.log('');

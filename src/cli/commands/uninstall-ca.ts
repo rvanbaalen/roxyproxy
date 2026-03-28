@@ -31,7 +31,7 @@ export function registerUninstallCa(program: Command): void {
     .description('Remove the CA certificate from the system trust store')
     .option('--no-interactive', 'Just print instructions without prompting')
     .action(async (opts) => {
-      const certPath = path.join(os.homedir(), '.roxyproxy', 'ca', 'ca.crt');
+      const certPath = path.join(os.homedir(), '.laurel-proxy', 'ca', 'ca.crt');
 
       if (!fs.existsSync(certPath)) {
         printError('CA certificate not found. Nothing to remove.');
@@ -65,7 +65,7 @@ async function uninstallMacOS(certPath: string): Promise<void> {
   }
 
   console.log('');
-  console.log(`  This will remove the RoxyProxy CA from your macOS system keychain.`);
+  console.log(`  This will remove the Laurel Proxy CA from your macOS system keychain.`);
   console.log(`  You'll be prompted for your ${pc.bold('sudo password')}.`);
   console.log('');
 
@@ -96,7 +96,7 @@ async function uninstallMacOS(certPath: string): Promise<void> {
 }
 
 async function uninstallLinux(): Promise<void> {
-  const targetPath = '/usr/local/share/ca-certificates/roxyproxy.crt';
+  const targetPath = '/usr/local/share/ca-certificates/laurel-proxy.crt';
   const { existsSync } = await import('node:fs');
 
   if (!existsSync(targetPath)) {
@@ -105,7 +105,7 @@ async function uninstallLinux(): Promise<void> {
   }
 
   console.log('');
-  console.log(`  This will remove the RoxyProxy CA from your system certificate store.`);
+  console.log(`  This will remove the Laurel Proxy CA from your system certificate store.`);
   console.log(`  You'll be prompted for your ${pc.bold('sudo password')}.`);
   console.log('');
 
@@ -141,11 +141,11 @@ function printManualInstructions(certPath: string, platform: string): void {
     console.log(pc.cyan(`  sudo security remove-trusted-cert -d "${certPath}"`));
   } else {
     console.log(`  ${pc.bold('Linux (Debian/Ubuntu):')}`);
-    console.log(pc.cyan(`  sudo rm /usr/local/share/ca-certificates/roxyproxy.crt`));
+    console.log(pc.cyan(`  sudo rm /usr/local/share/ca-certificates/laurel-proxy.crt`));
     console.log(pc.cyan(`  sudo update-ca-certificates --fresh`));
   }
   console.log('');
   console.log(`  ${pc.bold('Firefox')} ${pc.dim('(uses its own cert store):')}`);
-  console.log(`  Settings > Privacy & Security > Certificates > View Certificates > Delete "RoxyProxy CA"`);
+  console.log(`  Settings > Privacy & Security > Certificates > View Certificates > Delete "Laurel Proxy CA"`);
   console.log('');
 }

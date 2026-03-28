@@ -5,7 +5,7 @@ import path from 'node:path';
 import os from 'node:os';
 import { Database } from '../../storage/db.js';
 import { loadConfig } from '../../server/config.js';
-import { RoxyProxyServer } from '../../server/index.js';
+import { LaurelProxyServer } from '../../server/index.js';
 import { formatRequests, formatTailLine } from '../format.js';
 import { enableSystemProxy, disableSystemProxy, checkSystemProxyStatus } from '../system-proxy.js';
 import type { RequestFilter, RequestRecord } from '../../shared/types.js';
@@ -24,13 +24,13 @@ function isProxyRunning(port: number): Promise<boolean> {
 }
 
 /** Start a proxy server, enable system proxy, return instance and ports. */
-async function autoStartProxy(requestedUiPort: number): Promise<{ server: RoxyProxyServer; uiPort: number; systemProxyEnabled: boolean }> {
+async function autoStartProxy(requestedUiPort: number): Promise<{ server: LaurelProxyServer; uiPort: number; systemProxyEnabled: boolean }> {
   const config = loadConfig({ uiPort: requestedUiPort });
-  const pidPath = path.join(os.homedir(), '.roxyproxy', 'pid');
+  const pidPath = path.join(os.homedir(), '.laurel-proxy', 'pid');
   fs.mkdirSync(path.dirname(pidPath), { recursive: true });
   fs.writeFileSync(pidPath, process.pid.toString());
 
-  const server = new RoxyProxyServer(config);
+  const server = new LaurelProxyServer(config);
   const ports = await server.start();
 
   // Enable system proxy so traffic flows through automatically
@@ -117,7 +117,7 @@ export function registerRequests(program: Command): void {
         // Default to table (interactive TUI) when tailing
         const format = opts.format ?? 'table';
         let uiPort = parseInt(opts.uiPort, 10);
-        let server: RoxyProxyServer | null = null;
+        let server: LaurelProxyServer | null = null;
 
         // Auto-start proxy if not running
         let didEnableSystemProxy = false;

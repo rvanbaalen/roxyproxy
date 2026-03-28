@@ -75,8 +75,8 @@ describe('ProxyServer - HTTP', () => {
   });
 
   beforeEach(async () => {
-    dbPath = path.join(os.tmpdir(), `roxyproxy-test-${randomUUID()}.db`);
-    caDir = path.join(os.tmpdir(), `roxyproxy-ca-test-${randomUUID()}`);
+    dbPath = path.join(os.tmpdir(), `laurel-proxy-test-${randomUUID()}.db`);
+    caDir = path.join(os.tmpdir(), `laurel-proxy-ca-test-${randomUUID()}`);
     db = new Database(dbPath);
     events = new EventManager();
     const ca = new CertificateAuthority(caDir, 10);
@@ -242,8 +242,8 @@ describe('ProxyServer - HTTPS', () => {
   let caCertPem: string;
 
   beforeEach(async () => {
-    dbPath = path.join(os.tmpdir(), `roxyproxy-test-${randomUUID()}.db`);
-    caDir = path.join(os.tmpdir(), `roxyproxy-ca-test-${randomUUID()}`);
+    dbPath = path.join(os.tmpdir(), `laurel-proxy-test-${randomUUID()}.db`);
+    caDir = path.join(os.tmpdir(), `laurel-proxy-ca-test-${randomUUID()}`);
     db = new Database(dbPath);
     events = new EventManager();
     ca = new CertificateAuthority(caDir, 10);
@@ -367,7 +367,7 @@ describe('CertificateAuthority', () => {
   let ca: CertificateAuthority;
 
   beforeEach(() => {
-    caDir = path.join(os.tmpdir(), `roxyproxy-ca-unit-${randomUUID()}`);
+    caDir = path.join(os.tmpdir(), `laurel-proxy-ca-unit-${randomUUID()}`);
     ca = new CertificateAuthority(caDir, 10);
     ca.init();
   });

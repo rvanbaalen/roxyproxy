@@ -94,7 +94,7 @@ export function createApiRouter(
       return;
     }
     res.setHeader('Content-Type', 'application/x-x509-ca-cert');
-    res.setHeader('Content-Disposition', 'attachment; filename="roxyproxy-ca.crt"');
+    res.setHeader('Content-Disposition', 'attachment; filename="laurel-proxy-ca.crt"');
     fs.createReadStream(certPath).pipe(res);
   });
 

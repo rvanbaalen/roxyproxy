@@ -15,7 +15,7 @@ function run(cmd: string, args: string[]): Promise<{ code: number; stdout: strin
 
 export interface PortProcess {
   pid: number;
-  isRoxyProxy: boolean;
+  isLaurel Proxy: boolean;
 }
 
 /**
@@ -29,12 +29,12 @@ export async function getProcessOnPort(port: number): Promise<PortProcess | null
   if (isNaN(pid)) return null;
 
   const ps = await run('ps', ['-p', String(pid), '-o', 'command=']);
-  const isRoxyProxy = ps.stdout.includes('roxyproxy');
-  return { pid, isRoxyProxy };
+  const isLaurel Proxy = ps.stdout.includes('laurel-proxy');
+  return { pid, isLaurel Proxy };
 }
 
 /**
- * Try to gracefully shut down a roxyproxy instance on a given port
+ * Try to gracefully shut down a laurel-proxy instance on a given port
  * by calling its shutdown API endpoint.
  */
 function shutdownViaApi(port: number): Promise<boolean> {
@@ -82,13 +82,13 @@ export interface ExistingInstance {
 }
 
 /**
- * Find running RoxyProxy instances via PID file and port scanning.
+ * Find running Laurel Proxy instances via PID file and port scanning.
  */
 export async function findExistingInstances(proxyPort: number, uiPort: number): Promise<ExistingInstance[]> {
   const instances = new Map<number, ExistingInstance>();
 
   // Check PID file
-  const pidPath = path.join(os.homedir(), '.roxyproxy', 'pid');
+  const pidPath = path.join(os.homedir(), '.laurel-proxy', 'pid');
   try {
     const pid = parseInt(fs.readFileSync(pidPath, 'utf-8').trim(), 10);
     if (!isNaN(pid) && pid !== process.pid) {
@@ -105,7 +105,7 @@ export async function findExistingInstances(proxyPort: number, uiPort: number): 
   // Check configured ports
   for (const port of new Set([proxyPort, uiPort])) {
     const proc = await getProcessOnPort(port);
-    if (proc?.isRoxyProxy && proc.pid !== process.pid) {
+    if (proc?.isLaurel Proxy && proc.pid !== process.pid) {
       if (instances.has(proc.pid)) {
         instances.get(proc.pid)!.ports.push(port);
       } else {
@@ -118,7 +118,7 @@ export async function findExistingInstances(proxyPort: number, uiPort: number): 
 }
 
 /**
- * Kill an existing RoxyProxy instance. Tries API shutdown first, then SIGTERM.
+ * Kill an existing Laurel Proxy instance. Tries API shutdown first, then SIGTERM.
  */
 export async function killInstance(instance: ExistingInstance): Promise<boolean> {
   // Try graceful API shutdown on known ports
@@ -157,7 +157,7 @@ function waitForProcessExit(pid: number, timeoutMs = 3000): Promise<boolean> {
 
 /**
  * Try to listen on a port. If EADDRINUSE:
- * 1. Check if it's another roxyproxy — if so, shut it down and retry
+ * 1. Check if it's another laurel-proxy — if so, shut it down and retry
  * 2. Otherwise, try the next port (up to maxRetries)
  */
 export function listenWithRetry(
@@ -173,10 +173,10 @@ export function listenWithRetry(
       const onError = async (err: NodeJS.ErrnoException) => {
         if (err.code !== 'EADDRINUSE') { reject(err); return; }
 
-        // First attempt on the original port — check if it's another roxyproxy
+        // First attempt on the original port — check if it's another laurel-proxy
         if (p === port && !killedPrevious) {
           const proc = await getProcessOnPort(p);
-          if (proc?.isRoxyProxy) {
+          if (proc?.isLaurel Proxy) {
             const shutdown = await shutdownViaApi(p);
             if (shutdown) {
               const freed = await waitForPortFree(p);

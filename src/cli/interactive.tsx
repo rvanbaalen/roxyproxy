@@ -6,7 +6,7 @@ import path from 'node:path';
 import os from 'node:os';
 import fs from 'node:fs';
 import { loadConfig } from '../server/config.js';
-import { RoxyProxyServer } from '../server/index.js';
+import { LaurelProxyServer } from '../server/index.js';
 import { findExistingInstances, killInstance, type ExistingInstance } from '../server/port-utils.js';
 import { Database } from '../storage/db.js';
 import { enableSystemProxy, disableSystemProxy, installCaCert, uninstallCaCert, checkCaStatus, checkSystemProxyStatus } from './system-proxy.js';
@@ -83,7 +83,7 @@ function buildMenu(proxyRunning: boolean, caStatus: CaStatus, systemProxyEnabled
     ...(caStatus.trusted ? [{ type: 'item' as const, label: 'Uninstall CA certificate', value: 'uninstall-ca', hint: 'Remove cert from system trust store' }] : []),
     systemProxyEnabled
       ? { type: 'item', label: 'Disable system proxy', value: 'toggle-system-proxy', hint: 'Restore direct connections', badge: 'enabled', badgeColor: 'green' }
-      : { type: 'item', label: 'Enable system proxy', value: 'toggle-system-proxy', hint: 'Route all traffic through RoxyProxy', badge: 'disabled', badgeColor: 'gray' },
+      : { type: 'item', label: 'Enable system proxy', value: 'toggle-system-proxy', hint: 'Route all traffic through Laurel Proxy', badge: 'disabled', badgeColor: 'gray' },
 
     { type: 'heading', label: '' },
     { type: 'item', label: 'Quit', value: 'quit' },
@@ -249,10 +249,10 @@ function RequestsView({ onBack, onSelect }: { onBack: () => void; onSelect: (id:
       <Box marginTop={1}><Text dimColor>{'↑↓ navigate  Enter select  Esc back'}</Text></Box>
       <Box marginTop={1} flexDirection="column">
         <Text dimColor>  Filter with the CLI:</Text>
-        <Text color="cyan">{'    roxyproxy requests --host example.com'}</Text>
-        <Text color="cyan">{'    roxyproxy requests --status 500 --method POST'}</Text>
-        <Text color="cyan">{'    roxyproxy requests --search "/api" --format table'}</Text>
-        <Text color="cyan">{'    roxyproxy request <id>  '}<Text dimColor>{'# full detail for one request'}</Text></Text>
+        <Text color="cyan">{'    laurel-proxy requests --host example.com'}</Text>
+        <Text color="cyan">{'    laurel-proxy requests --status 500 --method POST'}</Text>
+        <Text color="cyan">{'    laurel-proxy requests --search "/api" --format table'}</Text>
+        <Text color="cyan">{'    laurel-proxy request <id>  '}<Text dimColor>{'# full detail for one request'}</Text></Text>
       </Box>
     </Box>
   );
@@ -324,7 +324,7 @@ function ConfirmKillView({ instances, onConfirm, onCancel }: { instances: Existi
   return (
     <Box flexDirection="column">
       <Box marginBottom={1}>
-        <Text color="yellow">  ! Existing RoxyProxy instance{instances.length > 1 ? 's' : ''} detected:</Text>
+        <Text color="yellow">  ! Existing Laurel Proxy instance{instances.length > 1 ? 's' : ''} detected:</Text>
       </Box>
       {instances.map((inst) => (
         <Box key={inst.pid}>
@@ -357,7 +357,7 @@ function App() {
   const [workingLabel, setWorkingLabel] = useState('');
   const [message, setMessage] = useState('');
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
-  const [server, setServer] = useState<RoxyProxyServer | null>(null);
+  const [server, setServer] = useState<LaurelProxyServer | null>(null);
   const [uiPort, setUiPort] = useState(0);
   const [cursor, setCursor] = useState(0);
   const [caStatus, setCaStatus] = useState<CaStatus>({ exists: false, trusted: false, certPath: '' });
@@ -400,10 +400,10 @@ function App() {
     setWorkingLabel('Starting proxy...');
     try {
       const config = loadConfig();
-      const pidPath = path.join(os.homedir(), '.roxyproxy', 'pid');
+      const pidPath = path.join(os.homedir(), '.laurel-proxy', 'pid');
       fs.mkdirSync(path.dirname(pidPath), { recursive: true });
       fs.writeFileSync(pidPath, process.pid.toString());
-      const s = new RoxyProxyServer(config);
+      const s = new LaurelProxyServer(config);
       const ports = await s.start();
       setServer(s);
       setUiPort(ports.uiPort);

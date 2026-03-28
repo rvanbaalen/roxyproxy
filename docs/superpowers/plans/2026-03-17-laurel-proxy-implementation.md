@@ -1,4 +1,4 @@
-# RoxyProxy Implementation Plan
+# Laurel Proxy Implementation Plan
 
 > **For agentic workers:** REQUIRED: Use superpowers:subagent-driven-development (if subagents available) or superpowers:executing-plans to implement this plan. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -8,14 +8,14 @@
 
 **Tech Stack:** Node.js 22, TypeScript, better-sqlite3, node-forge, Express, Commander, React 19, Vite, Tailwind CSS v4
 
-**Spec:** `docs/superpowers/specs/2026-03-17-roxyproxy-design.md`
+**Spec:** `docs/superpowers/specs/2026-03-17-laurel-proxy-design.md`
 
 ---
 
 ## File Structure
 
 ```
-roxyproxy/
+laurel-proxy/
 ├── package.json              # Monorepo root, workspaces for server + ui
 ├── tsconfig.json             # Base TS config
 ├── tsconfig.server.json      # Server TS config (Node target)
@@ -78,7 +78,7 @@ roxyproxy/
 - [ ] **Step 1: Initialize package.json**
 
 ```bash
-cd /Users/robin/Sites/projects/roxyproxy
+cd /Users/robin/Sites/projects/laurel-proxy
 npm init -y
 ```
 
@@ -86,12 +86,12 @@ Then edit `package.json`:
 
 ```json
 {
-  "name": "roxyproxy",
+  "name": "laurel-proxy",
   "version": "0.1.0",
   "description": "HTTP/HTTPS intercepting proxy with CLI and web UI",
   "type": "module",
   "bin": {
-    "roxyproxy": "./dist/cli/index.js"
+    "laurel-proxy": "./dist/cli/index.js"
   },
   "scripts": {
     "build:server": "tsc -p tsconfig.server.json",
@@ -201,7 +201,7 @@ export interface Config {
 export const DEFAULT_CONFIG: Config = {
   proxyPort: 8080,
   uiPort: 8081,
-  dbPath: '~/.roxyproxy/data.db',
+  dbPath: '~/.laurel-proxy/data.db',
   maxAge: 7 * 24 * 60 * 60 * 1000,       // 7 days
   maxDbSize: 500 * 1024 * 1024,           // 500MB
   maxBodySize: 1 * 1024 * 1024,           // 1MB
@@ -293,7 +293,7 @@ describe('Database', () => {
   let dbPath: string;
 
   beforeEach(() => {
-    dbPath = path.join(os.tmpdir(), `roxyproxy-test-${randomUUID()}.db`);
+    dbPath = path.join(os.tmpdir(), `laurel-proxy-test-${randomUUID()}.db`);
     db = new Database(dbPath);
   });
 
@@ -662,7 +662,7 @@ describe('CertificateAuthority', () => {
   let ca: CertificateAuthority;
 
   beforeEach(() => {
-    caDir = path.join(os.tmpdir(), `roxyproxy-ca-test-${randomUUID()}`);
+    caDir = path.join(os.tmpdir(), `laurel-proxy-ca-test-${randomUUID()}`);
     ca = new CertificateAuthority(caDir, 10);
   });
 
@@ -772,8 +772,8 @@ export class CertificateAuthority {
     cert.validity.notAfter.setFullYear(cert.validity.notBefore.getFullYear() + 10);
 
     const attrs = [
-      { name: 'commonName', value: 'RoxyProxy CA' },
-      { name: 'organizationName', value: 'RoxyProxy' },
+      { name: 'commonName', value: 'Laurel Proxy CA' },
+      { name: 'organizationName', value: 'Laurel Proxy' },
     ];
     cert.setSubject(attrs);
     cert.setIssuer(attrs);
@@ -907,7 +907,7 @@ function parseDuration(value: string): number {
 export function loadConfig(cliFlags: Partial<Config> = {}): Config {
   let fileConfig: Partial<Config> = {};
 
-  const configPath = expandHome('~/.roxyproxy/config.json');
+  const configPath = expandHome('~/.laurel-proxy/config.json');
   if (fs.existsSync(configPath)) {
     try {
       const raw = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
@@ -1191,8 +1191,8 @@ describe('ProxyServer - HTTP', () => {
   });
 
   beforeEach(async () => {
-    dbPath = path.join(os.tmpdir(), `roxyproxy-test-${randomUUID()}.db`);
-    caDir = path.join(os.tmpdir(), `roxyproxy-ca-test-${randomUUID()}`);
+    dbPath = path.join(os.tmpdir(), `laurel-proxy-test-${randomUUID()}.db`);
+    caDir = path.join(os.tmpdir(), `laurel-proxy-ca-test-${randomUUID()}`);
     db = new Database(dbPath);
     events = new EventManager();
     const ca = new CertificateAuthority(caDir, 10);
@@ -1651,7 +1651,7 @@ describe('REST API', () => {
   let port: number;
 
   beforeEach(async () => {
-    dbPath = path.join(os.tmpdir(), `roxyproxy-api-test-${randomUUID()}.db`);
+    dbPath = path.join(os.tmpdir(), `laurel-proxy-api-test-${randomUUID()}.db`);
     db = new Database(dbPath);
     events = new EventManager();
     const app = express();
@@ -1892,7 +1892,7 @@ import { Cleanup } from '../storage/cleanup.js';
 import { createApiRouter } from './api.js';
 import type { ProxyControl } from './api.js';
 
-export class RoxyProxyServer {
+export class LaurelProxyServer {
   private db: Database;
   private ca: CertificateAuthority;
   private proxy: ProxyServer;
@@ -2096,7 +2096,7 @@ Create `src/cli/commands/start.ts`:
 ```typescript
 import type { Command } from 'commander';
 import { loadConfig } from '../../server/config.js';
-import { RoxyProxyServer } from '../../server/index.js';
+import { LaurelProxyServer } from '../../server/index.js';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
@@ -2115,14 +2115,14 @@ export function registerStart(program: Command): void {
         ...(opts.dbPath ? { dbPath: opts.dbPath } : {}),
       });
 
-      const pidPath = path.join(os.homedir(), '.roxyproxy', 'pid');
+      const pidPath = path.join(os.homedir(), '.laurel-proxy', 'pid');
       fs.mkdirSync(path.dirname(pidPath), { recursive: true });
       fs.writeFileSync(pidPath, process.pid.toString());
 
-      const server = new RoxyProxyServer(config);
+      const server = new LaurelProxyServer(config);
       const { proxyPort, uiPort } = await server.start();
 
-      console.log(`RoxyProxy started`);
+      console.log(`Laurel Proxy started`);
       console.log(`  Proxy:  http://127.0.0.1:${proxyPort}`);
       console.log(`  Web UI: http://127.0.0.1:${uiPort}`);
       console.log(`  Press Ctrl+C to stop`);
@@ -2165,7 +2165,7 @@ export function registerStop(program: Command): void {
       } catch {}
 
       // Fallback to PID file
-      const pidPath = path.join(os.homedir(), '.roxyproxy', 'pid');
+      const pidPath = path.join(os.homedir(), '.laurel-proxy', 'pid');
       if (fs.existsSync(pidPath)) {
         const pid = parseInt(fs.readFileSync(pidPath, 'utf-8').trim(), 10);
         try {
@@ -2370,7 +2370,7 @@ export function registerTrustCa(program: Command): void {
     .command('trust-ca')
     .description('Show CA certificate path and trust instructions')
     .action(() => {
-      const certPath = path.join(os.homedir(), '.roxyproxy', 'ca', 'ca.crt');
+      const certPath = path.join(os.homedir(), '.laurel-proxy', 'ca', 'ca.crt');
 
       if (!fs.existsSync(certPath)) {
         console.error('CA certificate not found. Start the proxy first to generate it.');
@@ -2385,7 +2385,7 @@ export function registerTrustCa(program: Command): void {
       console.log(`  sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain "${certPath}"`);
       console.log('');
       console.log('Linux (Debian/Ubuntu):');
-      console.log(`  sudo cp "${certPath}" /usr/local/share/ca-certificates/roxyproxy.crt`);
+      console.log(`  sudo cp "${certPath}" /usr/local/share/ca-certificates/laurel-proxy.crt`);
       console.log('  sudo update-ca-certificates');
       console.log('');
       console.log('Firefox:');
@@ -2411,7 +2411,7 @@ import { registerTrustCa } from './commands/trust-ca.js';
 
 const program = new Command();
 program
-  .name('roxyproxy')
+  .name('laurel-proxy')
   .description('HTTP/HTTPS intercepting proxy with CLI and web UI')
   .version('0.1.0');
 
@@ -2484,7 +2484,7 @@ Create `src/ui/index.html`:
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>RoxyProxy</title>
+    <title>Laurel Proxy</title>
   </head>
   <body class="bg-gray-950 text-gray-100 min-h-screen">
     <div id="root"></div>
@@ -2764,7 +2764,7 @@ export function Controls({ onClear }: ControlsProps) {
 
   return (
     <div className="flex items-center gap-4 p-3 bg-gray-900 border-b border-gray-800">
-      <h1 className="text-lg font-bold text-white mr-4">RoxyProxy</h1>
+      <h1 className="text-lg font-bold text-white mr-4">Laurel Proxy</h1>
 
       <button
         onClick={toggleProxy}
@@ -3154,14 +3154,14 @@ import path from 'node:path';
 import os from 'node:os';
 import fs from 'node:fs';
 import { randomUUID } from 'node:crypto';
-import { RoxyProxyServer } from '../../src/server/index.js';
+import { LaurelProxyServer } from '../../src/server/index.js';
 import { DEFAULT_CONFIG } from '../../src/shared/types.js';
 import type { Config } from '../../src/shared/types.js';
 
-describe('RoxyProxy Integration', () => {
+describe('Laurel Proxy Integration', () => {
   let targetServer: http.Server;
   let targetPort: number;
-  let proxy: RoxyProxyServer;
+  let proxy: LaurelProxyServer;
   let proxyPort: number;
   let uiPort: number;
   let tmpDir: string;
@@ -3180,7 +3180,7 @@ describe('RoxyProxy Integration', () => {
     });
 
     // Start proxy
-    tmpDir = path.join(os.tmpdir(), `roxyproxy-integration-${randomUUID()}`);
+    tmpDir = path.join(os.tmpdir(), `laurel-proxy-integration-${randomUUID()}`);
     fs.mkdirSync(tmpDir, { recursive: true });
     const config: Config = {
       ...DEFAULT_CONFIG,
@@ -3188,7 +3188,7 @@ describe('RoxyProxy Integration', () => {
       uiPort: 0,
       dbPath: path.join(tmpDir, 'data.db'),
     };
-    proxy = new RoxyProxyServer(config);
+    proxy = new LaurelProxyServer(config);
     const ports = await proxy.start();
     proxyPort = ports.proxyPort;
     uiPort = ports.uiPort;

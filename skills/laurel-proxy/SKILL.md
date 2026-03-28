@@ -1,42 +1,42 @@
 ---
-name: roxyproxy
-description: Use when working with RoxyProxy, intercepting HTTP/HTTPS traffic, debugging API calls, inspecting network requests, or when the user mentions roxyproxy, proxy traffic, captured requests, or network debugging. Also use when the user asks to start/stop a proxy, view traffic, configure HTTPS interception, or debug why an API call is failing. Trigger even when the user just says "capture traffic", "inspect requests", "what is my app sending", or "debug this API".
+name: laurel-proxy
+description: Use when working with Laurel Proxy, intercepting HTTP/HTTPS traffic, debugging API calls, inspecting network requests, or when the user mentions laurel-proxy, proxy traffic, captured requests, or network debugging. Also use when the user asks to start/stop a proxy, view traffic, configure HTTPS interception, or debug why an API call is failing. Trigger even when the user just says "capture traffic", "inspect requests", "what is my app sending", or "debug this API".
 version: 1.2.0
 ---
 
-# RoxyProxy
+# Laurel Proxy
 
-RoxyProxy is an HTTP/HTTPS intercepting proxy with a CLI and web UI. It captures traffic, stores it in SQLite, and makes it queryable. Works on **macOS** and **Linux**.
+Laurel Proxy is an HTTP/HTTPS intercepting proxy with a CLI and web UI. It captures traffic, stores it in SQLite, and makes it queryable. Works on **macOS** and **Linux**.
 
-Install: `npm install -g @rvanbaalen/roxyproxy`
-Run without installing: `npx @rvanbaalen/roxyproxy`
+Install: `npm install -g @rvanbaalen/laurel-proxy`
+Run without installing: `npx @rvanbaalen/laurel-proxy`
 
 ## Quick Start — One Command
 
 The fastest way to capture and inspect traffic. This single command starts the proxy, enables the macOS system proxy, and opens a live interactive TUI:
 
 ```bash
-roxyproxy requests --tail
-roxyproxy requests --host api.example.com --tail
-roxyproxy requests --status 500 --tail
-roxyproxy requests --host stripe.com --method POST --tail
+laurel-proxy requests --tail
+laurel-proxy requests --host api.example.com --tail
+laurel-proxy requests --status 500 --tail
+laurel-proxy requests --host stripe.com --method POST --tail
 ```
 
 `--tail` automatically:
 1. Starts the proxy if it isn't running
-2. Enables the macOS system proxy (routes all traffic through RoxyProxy)
+2. Enables the macOS system proxy (routes all traffic through Laurel Proxy)
 3. Opens an interactive terminal TUI
 4. On quit (Ctrl+C), disables the system proxy and stops the proxy
 
-For raw JSON streaming instead of the TUI: `roxyproxy requests --format json --tail`
+For raw JSON streaming instead of the TUI: `laurel-proxy requests --format json --tail`
 
 ## CLI Commands
 
-### `roxyproxy` (interactive mode)
+### `laurel-proxy` (interactive mode)
 
 Running with no arguments launches a terminal menu with access to all features: start/stop proxy, view requests, clear traffic, open web UI, trust CA, enable system proxy, quit.
 
-### `roxyproxy start [options]`
+### `laurel-proxy start [options]`
 
 Start the proxy server in the foreground.
 
@@ -44,17 +44,17 @@ Start the proxy server in the foreground.
 |---|---|---|
 | `--port <number>` | `8080` | Proxy listening port |
 | `--ui-port <number>` | `8081` | Web UI and API port |
-| `--db-path <path>` | `~/.roxyproxy/data.db` | SQLite database location |
+| `--db-path <path>` | `~/.laurel-proxy/data.db` | SQLite database location |
 
-### `roxyproxy stop [--ui-port <number>]`
+### `laurel-proxy stop [--ui-port <number>]`
 
 Stop the running proxy. Sends a graceful shutdown request via the API, falls back to SIGTERM via PID file.
 
-### `roxyproxy status [--ui-port <number>]`
+### `laurel-proxy status [--ui-port <number>]`
 
 Show proxy status: running state, proxy port, request count, database size.
 
-### `roxyproxy requests [options]`
+### `laurel-proxy requests [options]`
 
 Query captured requests. Default output is a human-readable table.
 
@@ -74,50 +74,50 @@ Query captured requests. Default output is a human-readable table.
 | `--slow <ms>` | | Shortcut: requests slower than threshold (e.g. `--slow 500`) |
 | `--tail` | | Real-time interactive TUI (auto-starts proxy + system proxy) |
 | `--ui-port <number>` | `8081` | API port (used with `--tail`) |
-| `--db-path <path>` | `~/.roxyproxy/data.db` | Database location |
+| `--db-path <path>` | `~/.laurel-proxy/data.db` | Database location |
 
 ```bash
-roxyproxy requests --host api.example.com --method POST
-roxyproxy requests --status 500 --limit 20
-roxyproxy requests --search "/api/v2" --since "2024-01-15T00:00:00Z"
-roxyproxy requests --format json --host stripe.com | jq '.data[].url'
+laurel-proxy requests --host api.example.com --method POST
+laurel-proxy requests --status 500 --limit 20
+laurel-proxy requests --search "/api/v2" --since "2024-01-15T00:00:00Z"
+laurel-proxy requests --format json --host stripe.com | jq '.data[].url'
 ```
 
-### `roxyproxy request <id> [options]`
+### `laurel-proxy request <id> [options]`
 
 Show full details of a single captured request: URL, method, status, duration, headers, and bodies.
 
 | Option | Default | Description |
 |---|---|---|
 | `--format <fmt>` | `json` | `json`, `table`, or `agent` |
-| `--db-path <path>` | `~/.roxyproxy/data.db` | Database location |
+| `--db-path <path>` | `~/.laurel-proxy/data.db` | Database location |
 
 ```bash
-roxyproxy request a1b2c3d4-e5f6-7890-abcd-ef1234567890
-roxyproxy request <uuid> --format table
+laurel-proxy request a1b2c3d4-e5f6-7890-abcd-ef1234567890
+laurel-proxy request <uuid> --format table
 ```
 
-### `roxyproxy clear [--ui-port <number>]`
+### `laurel-proxy clear [--ui-port <number>]`
 
 Delete all captured traffic from the database.
 
-### `roxyproxy trust-ca`
+### `laurel-proxy trust-ca`
 
-Install and trust the RoxyProxy CA certificate for HTTPS interception. On macOS, adds to the System Keychain (prompts for sudo). Must start the proxy first to generate the CA.
+Install and trust the Laurel Proxy CA certificate for HTTPS interception. On macOS, adds to the System Keychain (prompts for sudo). Must start the proxy first to generate the CA.
 
-### `roxyproxy uninstall-ca`
+### `laurel-proxy uninstall-ca`
 
 Remove the CA certificate from the system trust store.
 
-### `roxyproxy proxy-on [--port <number>] [--service <name>]`
+### `laurel-proxy proxy-on [--port <number>] [--service <name>]`
 
-Configure RoxyProxy as the macOS system-wide HTTP/HTTPS proxy. Auto-detects the active network service (Wi-Fi, Ethernet).
+Configure Laurel Proxy as the macOS system-wide HTTP/HTTPS proxy. Auto-detects the active network service (Wi-Fi, Ethernet).
 
-### `roxyproxy proxy-off [--service <name>]`
+### `laurel-proxy proxy-off [--service <name>]`
 
-Remove RoxyProxy from system proxy settings.
+Remove Laurel Proxy from system proxy settings.
 
-### `roxyproxy replay <id> [options]`
+### `laurel-proxy replay <id> [options]`
 
 Resend a previously captured request. Useful for reproducing issues or testing fixes.
 
@@ -133,13 +133,13 @@ Resend a previously captured request. Useful for reproducing issues or testing f
 
 ```bash
 # Replay a captured request
-roxyproxy replay a1b2c3d4-e5f6-7890-abcd-ef1234567890
+laurel-proxy replay a1b2c3d4-e5f6-7890-abcd-ef1234567890
 
 # Replay with diff to see if a fix worked
-roxyproxy replay a1b2c3d4 --diff
+laurel-proxy replay a1b2c3d4 --diff
 
 # Replay with diff in agent format (best for LLM consumption)
-roxyproxy replay a1b2c3d4 --diff --format agent
+laurel-proxy replay a1b2c3d4 --diff --format agent
 ```
 
 **Diff output** shows whether the replay status improved, regressed, changed, or stayed the same compared to the original captured response. Exit codes: 0 = replay is 2xx, 1 = replay is 4xx/5xx, 2 = connection failure.
@@ -148,16 +148,16 @@ roxyproxy replay a1b2c3d4 --diff --format agent
 
 The `agent` format returns enriched JSON optimized for LLM consumption. Use this when debugging via Claude Code instead of `json` or `table`.
 
-**List view** (`roxyproxy requests --format agent`): returns an array of enriched records with decoded bodies, `is_error` flag, and timing metadata.
+**List view** (`laurel-proxy requests --format agent`): returns an array of enriched records with decoded bodies, `is_error` flag, and timing metadata.
 
-**Detail view** (`roxyproxy request <id> --format agent`): returns a single enriched record with full request/response bodies decoded (not base64), a human-readable `summary` line, and `context.is_error` for quick triage.
+**Detail view** (`laurel-proxy request <id> --format agent`): returns a single enriched record with full request/response bodies decoded (not base64), a human-readable `summary` line, and `context.is_error` for quick triage.
 
 ```bash
 # Get all failed requests in agent-optimized format
-roxyproxy requests --failed --format agent
+laurel-proxy requests --failed --format agent
 
 # Get full detail for a specific request
-roxyproxy request <uuid> --format agent
+laurel-proxy request <uuid> --format agent
 ```
 
 ## Smart Filter Aliases
@@ -165,11 +165,11 @@ roxyproxy request <uuid> --format agent
 Convenience shortcuts that map to common filter combinations:
 
 ```bash
-roxyproxy requests --failed              # status >= 400
-roxyproxy requests --last-hour           # since 1 hour ago
-roxyproxy requests --last-day            # since 24 hours ago
-roxyproxy requests --slow 500            # duration > 500ms
-roxyproxy requests --failed --last-hour  # combine filters
+laurel-proxy requests --failed              # status >= 400
+laurel-proxy requests --last-hour           # since 1 hour ago
+laurel-proxy requests --last-day            # since 24 hours ago
+laurel-proxy requests --slow 500            # duration > 500ms
+laurel-proxy requests --failed --last-hour  # combine filters
 ```
 
 `--status` overrides `--failed` if both are specified.
@@ -206,8 +206,8 @@ The detail view has three tabs: **Overview**, **Request**, **Response**.
 ## HTTPS Interception
 
 ```bash
-roxyproxy start        # generates CA on first run
-roxyproxy trust-ca     # installs cert (prompts for sudo)
+laurel-proxy start        # generates CA on first run
+laurel-proxy trust-ca     # installs cert (prompts for sudo)
 ```
 
 After trusting, HTTPS traffic is automatically decrypted when routed through the proxy. Per-domain certificates are generated on-the-fly and cached (LRU, default 500).
@@ -223,8 +223,8 @@ export http_proxy=http://127.0.0.1:8080
 export https_proxy=http://127.0.0.1:8080
 
 # macOS system-wide (all apps)
-roxyproxy proxy-on
-roxyproxy proxy-off
+laurel-proxy proxy-on
+laurel-proxy proxy-off
 ```
 
 `--tail` handles routing automatically — it enables the system proxy on start and disables it on quit.
@@ -245,7 +245,7 @@ Available at `http://127.0.0.1:8081/api` when the proxy is running.
 | `/api/events` | GET | SSE stream for real-time traffic |
 | `/api/replay` | POST | Replay a captured request (body: `{ url, method, headers, body }`) |
 
-## Using RoxyProxy as Claude (agent workflow)
+## Using Laurel Proxy as Claude (agent workflow)
 
 When you (Claude) need to debug HTTP traffic — for example, the user says "why is this API call failing" or "what's my app sending to Stripe" — use `--format agent` for enriched, LLM-optimized output. This is much faster than asking the user to describe what they see.
 
@@ -253,10 +253,10 @@ When you (Claude) need to debug HTTP traffic — for example, the user says "why
 
 ```bash
 # Get all recent failures with enriched output
-roxyproxy requests --host <relevant-host> --failed --format agent
+laurel-proxy requests --host <relevant-host> --failed --format agent
 
 # Or narrow by time
-roxyproxy requests --host <relevant-host> --failed --last-hour --format agent
+laurel-proxy requests --host <relevant-host> --failed --last-hour --format agent
 ```
 
 The `agent` format returns decoded bodies (not base64), `is_error` flags, and timing metadata — everything you need to diagnose the issue.
@@ -264,7 +264,7 @@ The `agent` format returns decoded bodies (not base64), `is_error` flags, and ti
 ### Step 2: Inspect a specific request
 
 ```bash
-roxyproxy request <uuid> --format agent
+laurel-proxy request <uuid> --format agent
 ```
 
 Returns the full request and response with decoded bodies, headers, a human-readable summary line, and error context. JSON bodies are already parsed.
@@ -274,7 +274,7 @@ Returns the full request and response with decoded bodies, headers, a human-read
 After identifying the issue and applying a fix, replay the original request and diff against the original response:
 
 ```bash
-roxyproxy replay <uuid> --diff --format agent
+laurel-proxy replay <uuid> --diff --format agent
 ```
 
 The `--diff` flag shows whether the status improved, regressed, or stayed the same. The agent format returns structured JSON with `result` ("improved", "regressed", "changed", "unchanged"), `status_changed`, and `body_changed` fields. Exit code 0 means the replay returned 2xx (success).
@@ -284,7 +284,7 @@ The `--diff` flag shows whether the status improved, regressed, or stayed the sa
 If the issue needs live reproduction:
 
 ```bash
-roxyproxy requests --host <relevant-host> --format agent --tail
+laurel-proxy requests --host <relevant-host> --format agent --tail
 ```
 
 Streams enriched JSON to stdout in real-time. Run this, then ask the user to reproduce the issue.
@@ -293,12 +293,12 @@ Streams enriched JSON to stdout in real-time. Run this, then ask the user to rep
 
 ```bash
 # 1. Find the failing request
-roxyproxy requests --host api.example.com --failed --format agent --limit 1
+laurel-proxy requests --host api.example.com --failed --format agent --limit 1
 # 2. Read the full detail (replace with actual UUID from step 1)
-roxyproxy request <uuid-from-step-1> --format agent
+laurel-proxy request <uuid-from-step-1> --format agent
 # 3. The agent format shows decoded body, error context, and timing
 # 4. After fixing, replay with diff to verify
-roxyproxy replay <uuid-from-step-1> --diff --format agent
+laurel-proxy replay <uuid-from-step-1> --diff --format agent
 ```
 
 This pattern works for any HTTP debugging task — auth failures, unexpected response bodies, missing headers, wrong payloads, CORS preflight issues, etc.
@@ -309,19 +309,19 @@ This pattern works for any HTTP debugging task — auth failures, unexpected res
 
 ```bash
 # Watch traffic in real time, filtered to the failing service
-roxyproxy requests --host api.failing-service.com --tail
+laurel-proxy requests --host api.failing-service.com --tail
 # Reproduce the issue — the request appears in the TUI
 # Press Enter on the failing request, switch to Response tab to see error body
 # Or query after the fact:
-roxyproxy requests --host api.failing-service.com --status 500
-roxyproxy request <uuid>
+laurel-proxy requests --host api.failing-service.com --status 500
+laurel-proxy request <uuid>
 ```
 
 ### Inspect authentication headers
 
 ```bash
 # Filter to the auth endpoint
-roxyproxy requests --host auth.example.com --method POST --tail
+laurel-proxy requests --host auth.example.com --method POST --tail
 # Select a request, switch to Request tab to inspect Authorization header, tokens, cookies
 ```
 
@@ -329,7 +329,7 @@ roxyproxy requests --host auth.example.com --method POST --tail
 
 ```bash
 # Your app receives webhooks — route traffic through the proxy and filter
-roxyproxy requests --host localhost --search "/webhooks" --tail
+laurel-proxy requests --host localhost --search "/webhooks" --tail
 # Select the webhook request, Request tab shows the incoming payload
 # Response tab shows what your server replied
 ```
@@ -338,7 +338,7 @@ roxyproxy requests --host localhost --search "/webhooks" --tail
 
 ```bash
 # Capture all traffic to the third-party API
-roxyproxy requests --host api.thirdparty.com --tail
+laurel-proxy requests --host api.thirdparty.com --tail
 # Walk through each request: Overview shows status + timing
 # Request tab shows exactly what was sent (headers + body)
 # Response tab shows exactly what came back
@@ -348,10 +348,10 @@ roxyproxy requests --host api.thirdparty.com --tail
 
 ```bash
 # Find requests slower than 500ms
-roxyproxy requests --host api.example.com --slow 500 --format agent
+laurel-proxy requests --host api.example.com --slow 500 --format agent
 
 # Or browse visually in the table
-roxyproxy requests --host api.example.com --format table --limit 50
+laurel-proxy requests --host api.example.com --format table --limit 50
 # The TIME column shows duration in ms — spot outliers
 ```
 
@@ -359,28 +359,28 @@ roxyproxy requests --host api.example.com --format table --limit 50
 
 ```bash
 # Export as JSON and pipe to your tool of choice
-roxyproxy requests --host api.example.com --format json | jq '.data' > traffic.json
+laurel-proxy requests --host api.example.com --format json | jq '.data' > traffic.json
 # Or get a single request's full detail
-roxyproxy request <uuid> > request-detail.json
+laurel-proxy request <uuid> > request-detail.json
 ```
 
 ### Debug CORS or preflight issues
 
 ```bash
 # Filter for OPTIONS requests
-roxyproxy requests --method OPTIONS --host api.example.com --tail
+laurel-proxy requests --method OPTIONS --host api.example.com --tail
 # Check the Response tab for Access-Control-Allow-* headers
 ```
 
 ## Configuration
 
-Config file at `~/.roxyproxy/config.json`:
+Config file at `~/.laurel-proxy/config.json`:
 
 ```json
 {
   "proxyPort": 8080,
   "uiPort": 8081,
-  "dbPath": "~/.roxyproxy/data.db",
+  "dbPath": "~/.laurel-proxy/data.db",
   "maxAge": "7d",
   "maxDbSize": "500MB",
   "maxBodySize": "1MB",
@@ -394,11 +394,11 @@ Priority: CLI flags > config file > defaults.
 
 | Path | Purpose |
 |---|---|
-| `~/.roxyproxy/data.db` | SQLite database |
-| `~/.roxyproxy/config.json` | Configuration (optional) |
-| `~/.roxyproxy/ca/ca.crt` | Root CA certificate |
-| `~/.roxyproxy/ca/ca.key` | Root CA private key |
-| `~/.roxyproxy/pid` | Process ID file |
+| `~/.laurel-proxy/data.db` | SQLite database |
+| `~/.laurel-proxy/config.json` | Configuration (optional) |
+| `~/.laurel-proxy/ca/ca.crt` | Root CA certificate |
+| `~/.laurel-proxy/ca/ca.key` | Root CA private key |
+| `~/.laurel-proxy/pid` | Process ID file |
 
 ## Platform Notes
 
@@ -410,8 +410,8 @@ Works on **macOS** and **Linux**. Core proxy, query, and web UI features work on
 
 ## Port Conflicts
 
-RoxyProxy auto-detects port conflicts:
-- If another roxyproxy instance holds the port, it's automatically shut down
+Laurel Proxy auto-detects port conflicts:
+- If another laurel-proxy instance holds the port, it's automatically shut down
 - Otherwise, the next available port is used (8080 -> 8081 -> 8082...)
 
 The actual ports are always printed on startup.

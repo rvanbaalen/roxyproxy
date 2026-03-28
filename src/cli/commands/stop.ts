@@ -19,7 +19,7 @@ export function registerStop(program: Command): void {
         return;
       } catch {}
 
-      const pidPath = path.join(os.homedir(), '.roxyproxy', 'pid');
+      const pidPath = path.join(os.homedir(), '.laurel-proxy', 'pid');
       if (fs.existsSync(pidPath)) {
         const pid = parseInt(fs.readFileSync(pidPath, 'utf-8').trim(), 10);
         try {

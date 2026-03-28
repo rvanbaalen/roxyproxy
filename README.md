@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/logo.png" alt="RoxyProxy" width="600" />
+  <img src="assets/logo.png" alt="Laurel Proxy" width="600" />
 </p>
 
 <h3 align="center">See every HTTP request. Debug anything.</h3>
@@ -10,28 +10,28 @@
 </p>
 
 <p align="center">
-  <a href="https://www.npmjs.com/package/@rvanbaalen/roxyproxy"><img src="https://img.shields.io/npm/v/@rvanbaalen/roxyproxy" alt="npm version" /></a>
+  <a href="https://www.npmjs.com/package/@rvanbaalen/laurel-proxy"><img src="https://img.shields.io/npm/v/@rvanbaalen/laurel-proxy" alt="npm version" /></a>
   <img src="https://img.shields.io/badge/license-MIT-green" alt="MIT License" />
   <img src="https://img.shields.io/badge/platform-macOS%20%7C%20Linux-blue" alt="Platform" />
 </p>
 
 ---
 
-**Other proxy tools show traffic to humans.** RoxyProxy makes it queryable by AI agents. Tell Claude "the Stripe webhook is failing, debug it" and it queries RoxyProxy, finds the 422 response, reads the error body, and fixes your code.
+**Other proxy tools show traffic to humans.** Laurel Proxy makes it queryable by AI agents. Tell Claude "the Stripe webhook is failing, debug it" and it queries Laurel Proxy, finds the 422 response, reads the error body, and fixes your code.
 
 <p align="center">
-  <img src="demo/roxyproxy-demo.gif" alt="RoxyProxy demo — one prompt to debug any API" width="720" />
+  <img src="demo/laurel-proxy-demo.gif" alt="Laurel Proxy demo — one prompt to debug any API" width="720" />
 </p>
 
 ```bash
 # Install and start capturing traffic in 10 seconds
-npx @rvanbaalen/roxyproxy requests --tail
+npx @rvanbaalen/laurel-proxy requests --tail
 ```
 
-## Why RoxyProxy?
+## Why Laurel Proxy?
 
 - **AI-native.** A `--format agent` output mode returns enriched JSON optimized for LLM consumption. A Claude Code plugin teaches your AI assistant every command and API endpoint.
-- **One command.** `npx @rvanbaalen/roxyproxy` starts the proxy, enables system routing, and opens an interactive TUI. Ctrl+C to clean up.
+- **One command.** `npx @rvanbaalen/laurel-proxy` starts the proxy, enables system routing, and opens an interactive TUI. Ctrl+C to clean up.
 - **SQLite storage.** All traffic in a queryable database. Filter by host, status, method, time range. JSON output for piping.
 - **HTTPS interception.** Local CA, per-domain cert generation, one command to trust.
 - **Smart filters.** `--failed` for 4xx/5xx, `--last-hour`, `--last-day`, `--slow 500` for requests over 500ms.
@@ -42,34 +42,34 @@ npx @rvanbaalen/roxyproxy requests --tail
 
 ```bash
 # Start proxy + TUI (auto-enables system proxy on macOS)
-roxyproxy requests --tail
+laurel-proxy requests --tail
 
 # Filter for a specific host
-roxyproxy requests --host api.example.com --tail
+laurel-proxy requests --host api.example.com --tail
 
 # Show only failed requests from the last hour
-roxyproxy requests --failed --last-hour
+laurel-proxy requests --failed --last-hour
 
 # AI-optimized output for Claude Code
-roxyproxy requests --host stripe.com --failed --format agent
+laurel-proxy requests --host stripe.com --failed --format agent
 ```
 
 ### Manual setup
 
 ```bash
-roxyproxy start                                              # Start proxy
+laurel-proxy start                                              # Start proxy
 curl -x http://127.0.0.1:8080 http://httpbin.org/get        # Route traffic
-roxyproxy requests                                            # View captured traffic
+laurel-proxy requests                                            # View captured traffic
 open http://127.0.0.1:8081                                   # Open web UI
-roxyproxy stop                                                # Stop
+laurel-proxy stop                                                # Stop
 ```
 
-For HTTPS: `roxyproxy trust-ca` then traffic flows through automatically.
+For HTTPS: `laurel-proxy trust-ca` then traffic flows through automatically.
 
 ## Claude Code Plugin
 
 ```
-/plugin marketplace add rvanbaalen/roxyproxy
+/plugin marketplace add rvanbaalen/laurel-proxy
 ```
 
 After installation, just tell Claude what you need. It knows every command, filter, and API endpoint.
@@ -77,8 +77,8 @@ After installation, just tell Claude what you need. It knows every command, filt
 ## Installation
 
 ```bash
-npx @rvanbaalen/roxyproxy          # Run without installing
-npm install -g @rvanbaalen/roxyproxy  # Or install globally
+npx @rvanbaalen/laurel-proxy          # Run without installing
+npm install -g @rvanbaalen/laurel-proxy  # Or install globally
 ```
 
 ## Platform
@@ -87,10 +87,10 @@ Works on **macOS** and **Linux**. System proxy features (`proxy-on`/`proxy-off`)
 
 ## Interactive Mode
 
-Running `roxyproxy` with no arguments launches an interactive terminal menu:
+Running `laurel-proxy` with no arguments launches an interactive terminal menu:
 
 ```bash
-roxyproxy
+laurel-proxy
 ```
 
 ![Interactive mode](assets/interactive-mode.png)
@@ -103,7 +103,7 @@ The interactive menu provides access to all features:
 - **Clear traffic** -- delete all captured requests
 - **Open web UI** -- opens the dashboard in your browser (auto-starts the proxy if needed)
 - **Trust CA certificate** -- install the CA cert for HTTPS interception
-- **Enable/Disable system proxy** -- route all macOS traffic through RoxyProxy
+- **Enable/Disable system proxy** -- route all macOS traffic through Laurel Proxy
 - **Quit** -- stop the proxy and exit
 
 Use arrow keys to navigate and Enter to select. Press `q` or Ctrl+C to quit.
@@ -119,34 +119,34 @@ The interactive mode stays in sync with the web UI -- if you stop the proxy from
 Start the proxy server in the foreground.
 
 ```bash
-roxyproxy start [options]
+laurel-proxy start [options]
 ```
 
 | Option | Default | Description |
 |---|---|---|
 | `--port <number>` | `8080` | Proxy listening port |
 | `--ui-port <number>` | `8081` | Web UI and API port |
-| `--db-path <path>` | `~/.roxyproxy/data.db` | SQLite database location |
+| `--db-path <path>` | `~/.laurel-proxy/data.db` | SQLite database location |
 
 ```bash
 # Default ports
-roxyproxy start
+laurel-proxy start
 
 # Custom ports
-roxyproxy start --port 9000 --ui-port 9001
+laurel-proxy start --port 9000 --ui-port 9001
 
 # Custom database location
-roxyproxy start --db-path /tmp/proxy.db
+laurel-proxy start --db-path /tmp/proxy.db
 ```
 
-The process writes its PID to `~/.roxyproxy/pid` and responds to SIGINT/SIGTERM for graceful shutdown.
+The process writes its PID to `~/.laurel-proxy/pid` and responds to SIGINT/SIGTERM for graceful shutdown.
 
 ### stop
 
 Stop the running proxy server.
 
 ```bash
-roxyproxy stop [options]
+laurel-proxy stop [options]
 ```
 
 | Option | Default | Description |
@@ -156,8 +156,8 @@ roxyproxy stop [options]
 Sends a graceful shutdown request via the API. Falls back to SIGTERM via the PID file if the API is unreachable.
 
 ```bash
-roxyproxy stop
-roxyproxy stop --ui-port 9001
+laurel-proxy stop
+laurel-proxy stop --ui-port 9001
 ```
 
 ### status
@@ -165,7 +165,7 @@ roxyproxy stop --ui-port 9001
 Show proxy status.
 
 ```bash
-roxyproxy status [options]
+laurel-proxy status [options]
 ```
 
 | Option | Default | Description |
@@ -173,7 +173,7 @@ roxyproxy status [options]
 | `--ui-port <number>` | `8081` | API port to query |
 
 ```bash
-roxyproxy status
+laurel-proxy status
 ```
 
 Output:
@@ -190,7 +190,7 @@ DB Size    3.2MB
 Query captured requests from the database.
 
 ```bash
-roxyproxy requests [options]
+laurel-proxy requests [options]
 ```
 
 | Option | Default | Description |
@@ -209,28 +209,28 @@ roxyproxy requests [options]
 | `--format <format>` | `table` | Output format: `table`, `json`, or `agent` |
 | `--tail` | | Stream new requests in real-time (interactive TUI) |
 | `--ui-port <number>` | `8081` | UI/API port (used with `--tail`) |
-| `--db-path <path>` | `~/.roxyproxy/data.db` | Database location |
+| `--db-path <path>` | `~/.laurel-proxy/data.db` | Database location |
 
 The default output is a human-readable table. Use `--format json` for piping to `jq`, or `--format agent` for LLM-optimized output with decoded bodies and context:
 
 ```bash
 # All 500 errors
-roxyproxy requests --status 500
+laurel-proxy requests --status 500
 
 # POST requests to a specific host
-roxyproxy requests --host api.example.com --method POST
+laurel-proxy requests --host api.example.com --method POST
 
 # Search URLs
-roxyproxy requests --search "/api/v2"
+laurel-proxy requests --search "/api/v2"
 
 # Limit results
-roxyproxy requests --format table --limit 20
+laurel-proxy requests --format table --limit 20
 
 # Time-bounded query
-roxyproxy requests --since "2024-01-15T00:00:00Z" --until "2024-01-16T00:00:00Z"
+laurel-proxy requests --since "2024-01-15T00:00:00Z" --until "2024-01-16T00:00:00Z"
 
 # JSON for piping to jq
-roxyproxy requests --format json --host stripe.com | jq '.data[].url'
+laurel-proxy requests --format json --host stripe.com | jq '.data[].url'
 ```
 
 #### Real-time tailing
@@ -239,18 +239,18 @@ The `--tail` flag launches an interactive terminal UI that streams new requests 
 
 ```bash
 # Tail all traffic (auto-starts proxy + system proxy if needed)
-roxyproxy requests --tail
+laurel-proxy requests --tail
 
 # Tail with filters
-roxyproxy requests --host todoist.com --tail
-roxyproxy requests --status 500 --tail
-roxyproxy requests --method POST --host api.example.com --tail
+laurel-proxy requests --host todoist.com --tail
+laurel-proxy requests --status 500 --tail
+laurel-proxy requests --method POST --host api.example.com --tail
 ```
 
 **What `--tail` does automatically:**
 
 1. **Starts the proxy** if it isn't already running
-2. **Enables the macOS system proxy** so all traffic routes through RoxyProxy
+2. **Enables the macOS system proxy** so all traffic routes through Laurel Proxy
 3. Opens an interactive TUI with arrow-key navigation
 4. On quit (Ctrl+C), **disables the system proxy** and stops the proxy it started
 
@@ -273,17 +273,17 @@ To get raw JSON streaming instead of the TUI, use `--format json --tail`.
 Show full details of a single captured request, including headers and bodies.
 
 ```bash
-roxyproxy request <id> [options]
+laurel-proxy request <id> [options]
 ```
 
 | Option | Default | Description |
 |---|---|---|
 | `--format <format>` | `json` | Output format: `json`, `table`, or `agent` |
-| `--db-path <path>` | `~/.roxyproxy/data.db` | Database location |
+| `--db-path <path>` | `~/.laurel-proxy/data.db` | Database location |
 
 ```bash
-roxyproxy request a1b2c3d4-e5f6-7890-abcd-ef1234567890
-roxyproxy request a1b2c3d4-e5f6-7890-abcd-ef1234567890 --format agent
+laurel-proxy request a1b2c3d4-e5f6-7890-abcd-ef1234567890
+laurel-proxy request a1b2c3d4-e5f6-7890-abcd-ef1234567890 --format agent
 ```
 
 ### clear
@@ -291,7 +291,7 @@ roxyproxy request a1b2c3d4-e5f6-7890-abcd-ef1234567890 --format agent
 Delete all captured traffic from the database.
 
 ```bash
-roxyproxy clear [options]
+laurel-proxy clear [options]
 ```
 
 | Option | Default | Description |
@@ -299,15 +299,15 @@ roxyproxy clear [options]
 | `--ui-port <number>` | `8081` | API port |
 
 ```bash
-roxyproxy clear
+laurel-proxy clear
 ```
 
 ### trust-ca
 
-Install and trust the RoxyProxy CA certificate for HTTPS interception.
+Install and trust the Laurel Proxy CA certificate for HTTPS interception.
 
 ```bash
-roxyproxy trust-ca [options]
+laurel-proxy trust-ca [options]
 ```
 
 | Option | Description |
@@ -316,20 +316,20 @@ roxyproxy trust-ca [options]
 
 ```bash
 # Interactive (prompts for sudo password)
-roxyproxy trust-ca
+laurel-proxy trust-ca
 
 # Non-interactive (CI, scripts)
-roxyproxy trust-ca --no-interactive
+laurel-proxy trust-ca --no-interactive
 ```
 
 See [HTTPS Interception](#https-interception) for details.
 
 ### uninstall-ca
 
-Remove the RoxyProxy CA certificate from the system trust store.
+Remove the Laurel Proxy CA certificate from the system trust store.
 
 ```bash
-roxyproxy uninstall-ca [options]
+laurel-proxy uninstall-ca [options]
 ```
 
 | Option | Description |
@@ -338,20 +338,20 @@ roxyproxy uninstall-ca [options]
 
 ```bash
 # Interactive (prompts for sudo password)
-roxyproxy uninstall-ca
+laurel-proxy uninstall-ca
 
 # Non-interactive
-roxyproxy uninstall-ca --no-interactive
+laurel-proxy uninstall-ca --no-interactive
 ```
 
 On macOS, removes via `security remove-trusted-cert`. On Linux, removes from `/usr/local/share/ca-certificates/` and refreshes the store. Only available when the certificate is currently installed.
 
 ### proxy-on (macOS)
 
-Configure RoxyProxy as the system-wide HTTP/HTTPS proxy.
+Configure Laurel Proxy as the system-wide HTTP/HTTPS proxy.
 
 ```bash
-roxyproxy proxy-on [options]
+laurel-proxy proxy-on [options]
 ```
 
 | Option | Default | Description |
@@ -360,16 +360,16 @@ roxyproxy proxy-on [options]
 | `--service <name>` | auto-detected | Network service (e.g., "Wi-Fi", "Ethernet") |
 
 ```bash
-roxyproxy proxy-on
-roxyproxy proxy-on --port 9000 --service "Wi-Fi"
+laurel-proxy proxy-on
+laurel-proxy proxy-on --port 9000 --service "Wi-Fi"
 ```
 
 ### proxy-off (macOS)
 
-Remove RoxyProxy from system proxy settings.
+Remove Laurel Proxy from system proxy settings.
 
 ```bash
-roxyproxy proxy-off [options]
+laurel-proxy proxy-off [options]
 ```
 
 | Option | Default | Description |
@@ -377,7 +377,7 @@ roxyproxy proxy-off [options]
 | `--service <name>` | auto-detected | Network service |
 
 ```bash
-roxyproxy proxy-off
+laurel-proxy proxy-off
 ```
 
 ---
@@ -405,12 +405,12 @@ The filter bar is always accessible. Type in any filter field to narrow results 
 
 ## HTTPS Interception
 
-RoxyProxy performs HTTPS interception via a local Certificate Authority (CA).
+Laurel Proxy performs HTTPS interception via a local Certificate Authority (CA).
 
 ### How it works
 
-1. On first startup, RoxyProxy generates a root CA certificate and private key at `~/.roxyproxy/ca/`
-2. When a client sends a CONNECT request (HTTPS), RoxyProxy:
+1. On first startup, Laurel Proxy generates a root CA certificate and private key at `~/.laurel-proxy/ca/`
+2. When a client sends a CONNECT request (HTTPS), Laurel Proxy:
    - Accepts the tunnel
    - Generates a per-domain certificate signed by the CA on the fly
    - Terminates TLS with the client using the generated cert
@@ -422,13 +422,13 @@ RoxyProxy performs HTTPS interception via a local Certificate Authority (CA).
 **Step 1: Start the proxy** (generates the CA if it doesn't exist)
 
 ```bash
-roxyproxy start
+laurel-proxy start
 ```
 
 **Step 2: Trust the CA certificate**
 
 ```bash
-roxyproxy trust-ca
+laurel-proxy trust-ca
 ```
 
 This runs the platform-specific trust command:
@@ -437,7 +437,7 @@ This runs the platform-specific trust command:
 |---|---|
 | **macOS** | Adds to System Keychain via `security add-trusted-cert` (requires sudo) |
 | **Linux** | Copies to `/usr/local/share/ca-certificates/` and runs `update-ca-certificates` (requires sudo) |
-| **Firefox** | Must be done manually: Settings > Privacy & Security > Certificates > View Certificates > Import `~/.roxyproxy/ca/ca.crt` |
+| **Firefox** | Must be done manually: Settings > Privacy & Security > Certificates > View Certificates > Import `~/.laurel-proxy/ca/ca.crt` |
 
 **Step 3: Route HTTPS traffic through the proxy**
 
@@ -446,16 +446,16 @@ This runs the platform-specific trust command:
 curl -x http://127.0.0.1:8080 https://api.example.com/data
 
 # Or enable system-wide proxy (macOS)
-roxyproxy proxy-on
+laurel-proxy proxy-on
 ```
 
 ### Certificate Details
 
 | Property | Value |
 |---|---|
-| CA location | `~/.roxyproxy/ca/ca.crt` and `ca.key` |
+| CA location | `~/.laurel-proxy/ca/ca.crt` and `ca.key` |
 | CA validity | 10 years |
-| CA subject | "RoxyProxy CA" |
+| CA subject | "Laurel Proxy CA" |
 | Per-domain cert validity | 1 year |
 | Key size | 2048-bit RSA |
 | Signature algorithm | SHA-256 |
@@ -465,14 +465,14 @@ roxyproxy proxy-on
 
 ## iOS Device Inspection
 
-RoxyProxy can inspect HTTP/HTTPS traffic from an iOS device. Your computer and iOS device must be on the same Wi-Fi network.
+Laurel Proxy can inspect HTTP/HTTPS traffic from an iOS device. Your computer and iOS device must be on the same Wi-Fi network.
 
 ### Setup
 
-**Step 1: Start RoxyProxy on your computer**
+**Step 1: Start Laurel Proxy on your computer**
 
 ```bash
-roxyproxy start
+laurel-proxy start
 ```
 
 **Step 2: Note your computer's network address**
@@ -519,16 +519,16 @@ Safari will prompt you to download a configuration profile. Tap **Allow**.
 **Step 5: Install the profile**
 
 1. Open **Settings > General > VPN & Device Management** (or **Profiles & Device Management** on older iOS)
-2. Tap the **RoxyProxy CA** profile
+2. Tap the **Laurel Proxy CA** profile
 3. Tap **Install** and enter your passcode
 
 **Step 6: Enable full trust for the certificate**
 
 1. Open **Settings > General > About > Certificate Trust Settings**
-2. Toggle **Enable Full Trust** for **RoxyProxy CA**
+2. Toggle **Enable Full Trust** for **Laurel Proxy CA**
 3. Tap **Continue** on the warning dialog
 
-HTTPS traffic from the iOS device is now fully inspectable through RoxyProxy.
+HTTPS traffic from the iOS device is now fully inspectable through Laurel Proxy.
 
 ### Viewing traffic
 
@@ -541,7 +541,7 @@ http://<your-computer-ip>:8081
 Or use the CLI:
 
 ```bash
-roxyproxy requests --tail
+laurel-proxy requests --tail
 ```
 
 ### Cleanup
@@ -549,20 +549,20 @@ roxyproxy requests --tail
 When you're done inspecting, remove the proxy from iOS:
 
 1. **Settings > Wi-Fi > (i) > Configure Proxy > Off**
-2. Optionally remove the CA profile: **Settings > General > VPN & Device Management > RoxyProxy CA > Remove Profile**
+2. Optionally remove the CA profile: **Settings > General > VPN & Device Management > Laurel Proxy CA > Remove Profile**
 
 ---
 
 ## System Proxy (macOS)
 
-On macOS, RoxyProxy can configure itself as the system-wide HTTP/HTTPS proxy. This routes all traffic from most applications through the proxy without needing per-app configuration.
+On macOS, Laurel Proxy can configure itself as the system-wide HTTP/HTTPS proxy. This routes all traffic from most applications through the proxy without needing per-app configuration.
 
 ```bash
 # Enable
-roxyproxy proxy-on
+laurel-proxy proxy-on
 
 # Disable
-roxyproxy proxy-off
+laurel-proxy proxy-off
 ```
 
 This uses `networksetup` to set the proxy on your active network service (auto-detects Wi-Fi, Ethernet, or the first available interface).
@@ -574,18 +574,18 @@ This uses `networksetup` to set the proxy on your active network service (auto-d
 Configuration is loaded from (highest priority first):
 
 1. CLI flags
-2. `~/.roxyproxy/config.json`
+2. `~/.laurel-proxy/config.json`
 3. Built-in defaults
 
 ### Config file
 
-Create `~/.roxyproxy/config.json`:
+Create `~/.laurel-proxy/config.json`:
 
 ```json
 {
   "proxyPort": 8080,
   "uiPort": 8081,
-  "dbPath": "~/.roxyproxy/data.db",
+  "dbPath": "~/.laurel-proxy/data.db",
   "maxAge": "7d",
   "maxDbSize": "500MB",
   "maxBodySize": "1MB",
@@ -599,7 +599,7 @@ Create `~/.roxyproxy/config.json`:
 |---|---|---|
 | `proxyPort` | `8080` | Proxy listening port |
 | `uiPort` | `8081` | Web UI and REST API port |
-| `dbPath` | `~/.roxyproxy/data.db` | SQLite database file path (supports `~`) |
+| `dbPath` | `~/.laurel-proxy/data.db` | SQLite database file path (supports `~`) |
 | `maxAge` | `7d` | Auto-delete requests older than this |
 | `maxDbSize` | `500MB` | Auto-delete oldest requests when DB exceeds this size |
 | `maxBodySize` | `1MB` | Truncate request/response bodies larger than this |
@@ -689,7 +689,7 @@ Response:
 
 #### `GET /api/ca.crt`
 
-Download the RoxyProxy CA certificate. Useful for installing on mobile devices -- open this URL in the device's browser to trigger a certificate install prompt.
+Download the Laurel Proxy CA certificate. Useful for installing on mobile devices -- open this URL in the device's browser to trigger a certificate install prompt.
 
 ```bash
 curl -O http://127.0.0.1:8081/api/ca.crt
@@ -738,7 +738,7 @@ Events are named:
 
 ```
                     ┌─────────────────────────────────────────┐
-                    │              RoxyProxy                   │
+                    │              Laurel Proxy                   │
                     │                                         │
   HTTP/S traffic    │  ┌──────────────┐    ┌──────────────┐  │
  ─────────────────► │  │ Proxy Server │───►│  EventManager │  │
@@ -771,7 +771,7 @@ Events are named:
 
 ### Data storage
 
-All data is stored in `~/.roxyproxy/data.db` (SQLite). The `requests` table has indexes on `timestamp`, `host`, `status`, `path`, and `content_type` for fast querying.
+All data is stored in `~/.laurel-proxy/data.db` (SQLite). The `requests` table has indexes on `timestamp`, `host`, `status`, `path`, and `content_type` for fast querying.
 
 Request and response bodies are stored as binary blobs. In the API and SSE stream, they are base64-encoded.
 
@@ -779,11 +779,11 @@ Request and response bodies are stored as binary blobs. In the API and SSE strea
 
 | Path | Purpose |
 |---|---|
-| `~/.roxyproxy/data.db` | SQLite database |
-| `~/.roxyproxy/config.json` | Configuration file (optional) |
-| `~/.roxyproxy/ca/ca.crt` | Root CA certificate |
-| `~/.roxyproxy/ca/ca.key` | Root CA private key |
-| `~/.roxyproxy/pid` | Process ID file |
+| `~/.laurel-proxy/data.db` | SQLite database |
+| `~/.laurel-proxy/config.json` | Configuration file (optional) |
+| `~/.laurel-proxy/ca/ca.crt` | Root CA certificate |
+| `~/.laurel-proxy/ca/ca.key` | Root CA private key |
+| `~/.laurel-proxy/pid` | Process ID file |
 
 ---
 
@@ -821,7 +821,7 @@ src/
 │   ├── commands/       # Individual CLI commands
 │   └── system-proxy.ts # macOS system proxy & CA management
 ├── server/             # Proxy server, API, SSL, events
-│   ├── index.ts        # RoxyProxyServer orchestrator
+│   ├── index.ts        # LaurelProxyServer orchestrator
 │   ├── proxy.ts        # HTTP/HTTPS intercepting proxy
 │   ├── api.ts          # Express REST API + SSE
 │   ├── ssl.ts          # CA generation & per-domain cert caching

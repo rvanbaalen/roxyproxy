@@ -10,7 +10,7 @@ describe('CertificateAuthority', () => {
   let ca: CertificateAuthority;
 
   beforeEach(() => {
-    caDir = path.join(os.tmpdir(), `roxyproxy-ca-test-${randomUUID()}`);
+    caDir = path.join(os.tmpdir(), `laurel-proxy-ca-test-${randomUUID()}`);
     ca = new CertificateAuthority(caDir, 10);
   });
 

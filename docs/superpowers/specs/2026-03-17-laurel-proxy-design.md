@@ -1,4 +1,4 @@
-# RoxyProxy — Design Spec
+# Laurel Proxy — Design Spec
 
 An HTTP/HTTPS intercepting proxy server with CLI querying and a web UI. Similar to Charles Proxy, built in Node.js/TypeScript.
 
@@ -8,7 +8,7 @@ Single Node.js/TypeScript process containing four modules:
 
 ```
 ┌─────────────────────────────────────────────┐
-│                 RoxyProxy                   │
+│                 Laurel Proxy                   │
 │                                             │
 │  ┌───────────┐  ┌───────────┐  ┌─────────┐ │
 │  │   Proxy   │  │  REST API │  │  Web UI  │ │
@@ -47,9 +47,9 @@ Standard forward proxy using Node's built-in `http` module. Client sends `GET ht
 
 ### CA Certificate Management
 
-- On first run, generates a root CA key + cert, stored in `~/.roxyproxy/ca/`
+- On first run, generates a root CA key + cert, stored in `~/.laurel-proxy/ca/`
 - Per-domain certs generated on-the-fly and cached in memory (LRU cache, ~500 domains)
-- CLI command `roxyproxy trust-ca` prints the CA cert path and OS-specific trust instructions
+- CLI command `laurel-proxy trust-ca` prints the CA cert path and OS-specific trust instructions
 
 ### Error Handling
 
@@ -135,7 +135,7 @@ CREATE INDEX idx_content_type ON requests(content_type);
 
 ### Location
 
-`~/.roxyproxy/data.db` by default, configurable via `--db-path`.
+`~/.laurel-proxy/data.db` by default, configurable via `--db-path`.
 
 ## REST API
 
@@ -192,20 +192,20 @@ Server-Sent Events (SSE) on `GET /api/events` — pushes new requests to the web
 ## CLI
 
 ```
-roxyproxy start [--port 8080] [--ui-port 8081] [--db-path ~/.roxyproxy/data.db]
-roxyproxy stop
-roxyproxy status
-roxyproxy trust-ca
-roxyproxy requests [--host <pattern>] [--status <code>] [--method <method>]
+laurel-proxy start [--port 8080] [--ui-port 8081] [--db-path ~/.laurel-proxy/data.db]
+laurel-proxy stop
+laurel-proxy status
+laurel-proxy trust-ca
+laurel-proxy requests [--host <pattern>] [--status <code>] [--method <method>]
                    [--search <url-pattern>] [--since <time>] [--until <time>]
                    [--limit <n>] [--format json|table]
-roxyproxy request <id> [--format json|table]
-roxyproxy clear
+laurel-proxy request <id> [--format json|table]
+laurel-proxy clear
 ```
 
 ### Behavior
 
-- `start` runs in the foreground (Ctrl+C to stop). Writes a PID file to `~/.roxyproxy/pid` on startup, removes it on clean shutdown.
+- `start` runs in the foreground (Ctrl+C to stop). Writes a PID file to `~/.laurel-proxy/pid` on startup, removes it on clean shutdown.
 - `stop` sends a shutdown request via REST API. If the API is unreachable, checks the PID file and sends SIGTERM. Prints an error and exits with code 1 if neither works.
 - `requests` and `request` read directly from SQLite (works even when proxy is stopped)
 - `status`, `clear` communicate via the REST API
@@ -239,7 +239,7 @@ React 19 SPA built with Vite and styled with Tailwind CSS v4. Served as static f
 
 All configuration has sensible defaults. Config can be provided via:
 - CLI flags (highest priority)
-- Config file at `~/.roxyproxy/config.json`
+- Config file at `~/.laurel-proxy/config.json`
 - Defaults (lowest priority)
 
 ### Config Options
@@ -248,7 +248,7 @@ All configuration has sensible defaults. Config can be provided via:
 |--------|---------|-------------|
 | `proxyPort` | `8080` | Port the proxy listens on |
 | `uiPort` | `8081` | Port for web UI and REST API |
-| `dbPath` | `~/.roxyproxy/data.db` | SQLite database path |
+| `dbPath` | `~/.laurel-proxy/data.db` | SQLite database path |
 | `maxAge` | `7d` | Auto-cleanup: max request age |
 | `maxDbSize` | `500MB` | Auto-cleanup: max database size |
 | `maxBodySize` | `1MB` | Truncate bodies larger than this |
@@ -257,7 +257,7 @@ All configuration has sensible defaults. Config can be provided via:
 ## Project Structure
 
 ```
-roxyproxy/
+laurel-proxy/
 ├── package.json
 ├── tsconfig.json
 ├── vite.config.ts

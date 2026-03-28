@@ -12,7 +12,7 @@ import { createApiRouter } from './api.js';
 import type { ProxyControl } from './api.js';
 import { listenWithRetry } from './port-utils.js';
 
-export class RoxyProxyServer {
+export class LaurelProxyServer {
   private db: Database;
   private ca: CertificateAuthority;
   private proxy: ProxyServer;

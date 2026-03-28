@@ -14,7 +14,7 @@ import { registerReplay } from './commands/replay.js';
 
 const program = new Command();
 program
-  .name('roxyproxy')
+  .name('laurel-proxy')
   .description('HTTP/HTTPS intercepting proxy with CLI and web UI')
   .version('0.1.0');
 

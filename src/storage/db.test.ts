@@ -34,7 +34,7 @@ describe('Database', () => {
   let dbPath: string;
 
   beforeEach(() => {
-    dbPath = path.join(os.tmpdir(), `roxyproxy-test-${randomUUID()}.db`);
+    dbPath = path.join(os.tmpdir(), `laurel-proxy-test-${randomUUID()}.db`);
     db = new Database(dbPath);
   });
 
