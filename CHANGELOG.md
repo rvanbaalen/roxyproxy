@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.3](https://github.com/rvanbaalen/laurelproxy/compare/laurel-proxy-v0.2.2...laurel-proxy-v0.2.3) (2026-03-28)
+
+
+### Bug Fixes
+
+* regenerate assets with Laurel Proxy branding ([a02c384](https://github.com/rvanbaalen/laurelproxy/commit/a02c3846db180316389df5956ee06b271014ba84))
+
 ## [0.2.2](https://github.com/rvanbaalen/laurelproxy/compare/laurel-proxy-v0.2.1...laurel-proxy-v0.2.2) (2026-03-28)
 
 
