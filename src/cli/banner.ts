@@ -7,11 +7,11 @@ export function getLocalHostname(): string {
 
 export function printBanner(): void {
   console.log('');
-  console.log(pc.cyan('  ___                ___                    '));
-  console.log(pc.cyan(' | _ \\___ __ ___  _ | _ \\_ _ _____ ___  _  '));
-  console.log(pc.cyan(' |   / _ \\\\ \\ / || || ___/ \'_/ _ \\ \\ /| || |'));
-  console.log(pc.cyan(' |_|_\\___//_\\_\\\\_, ||_|  |_| \\___/_\\_\\ \\_, |'));
-  console.log(pc.cyan('                |__/                   |__/ '));
+  console.log(pc.cyan('  _                      _   ___                  '));
+  console.log(pc.cyan(' | |   __ _ _  _ _ _ ___| | | _ \\_ _ _____ ___  _ '));
+  console.log(pc.cyan(' | |__/ _` | || | \'_/ -_) | |  _/ \'_/ _ \\ \\ / || |'));
+  console.log(pc.cyan(' |____\\__,_|\\_,_|_| \\___|_| |_| |_| \\___/_\\_\\\\_, |'));
+  console.log(pc.cyan('                                             |__/ '));
   console.log('');
 }
 
